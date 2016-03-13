@@ -5,18 +5,18 @@
  */
 package model;
 
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.List;
 
 /**
  *
  * @author Kayo
  */
 public class TrataServidores implements Runnable {
-    LinkedList<ServidorAplicacao> servidoresAplicacao;
-    
-    public TrataServidores(LinkedList<ServidorAplicacao> servidoresAplicacao) {
-        this.servidoresAplicacao=servidoresAplicacao;
+
+    List<ServidorAplicacao> servidoresAplicacao;
+
+    public TrataServidores(List<ServidorAplicacao> servidoresAplicacao) {
+        this.servidoresAplicacao = servidoresAplicacao;
     }
 
     @Override
@@ -24,7 +24,6 @@ public class TrataServidores implements Runnable {
 
         //servidoresAplicacao.add(new ServidorAplicacao("192.111.1.0", 12345));
         //Collections.sort(servidoresAplicacao, new ServidorAplicacao(null,0));
-        
     }
-    
+
 }
