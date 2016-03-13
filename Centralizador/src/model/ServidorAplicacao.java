@@ -13,7 +13,7 @@ import java.io.IOException;
  *
  * @author dcandrade
  */
-class ServidorAplicacao implements Comparable<ServidorAplicacao>{
+public class ServidorAplicacao implements Comparable<ServidorAplicacao>{
 
     private final String ip;
     private Integer conexoes;
