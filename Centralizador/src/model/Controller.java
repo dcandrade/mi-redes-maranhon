@@ -5,10 +5,15 @@
  */
 package model;
 
+import java.io.DataInput;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 /**
@@ -22,23 +27,31 @@ public class Controller {
     //Mantém os servidores ordenados pelo critério de num de conexões
     private List<ServidorAplicacao> ordemServidores;
     //Mapeia o IP para o numero de conexoes
-    private TreeMap<String, ServidorAplicacao> mapaServidores;
+    private Map<String, ServidorAplicacao> mapaServidores;
+    private Map<String, ServerWatcher> watchers;
 
     public Controller() {
         this.ordemServidores = new ArrayList<>();
         this.mapaServidores = new TreeMap<>();
+        this.watchers = new HashMap<>();
     }
 
-    public void addServidor(String ip) {
-        ServidorAplicacao servidor = new ServidorAplicacao(ip);
+    public void addServidor(String ip, DataInputStream entrada, DataOutputStream saida) {
+        ServidorAplicacao servidor = new ServidorAplicacao(ip, entrada, saida);
         this.ordemServidores.add(servidor);
         this.mapaServidores.put(ip, servidor);
         this.ordenarServidores();
+
+         
+        ServerWatcher watcher = new ServerWatcher(servidor, this);
+        this.watchers.put(ip, watcher);
+        watcher.start();
     }
 
     public void removerServidor(String ip) {
         ServidorAplicacao servidor = this.mapaServidores.remove(ip);
         this.ordemServidores.remove(servidor);
+        this.watchers.remove(ip).interrupt();
     }
 
     public void decrementarConexoesServidor(String ip) {
@@ -69,9 +82,9 @@ public class Controller {
     public static void main(String[] args) {
         Controller c = new Controller();
 
-        c.addServidor("S1");
-        c.addServidor("S2");
-        c.addServidor("S3");
+        c.addServidor("S1", null, null);
+        c.addServidor("S2", null, null);
+        c.addServidor("S3", null, null);
 
         c.getProximoServidor();
         c.getProximoServidor();

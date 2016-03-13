@@ -5,18 +5,34 @@
  */
 package model;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
 /**
  *
  * @author dcandrade
  */
 class ServidorAplicacao implements Comparable<ServidorAplicacao>{
 
-    private String ip;
+    private final String ip;
     private Integer conexoes;
+    private final DataInputStream entrada;
+    private final DataOutputStream saida;
 
-    public ServidorAplicacao(String ip) {
+    public ServidorAplicacao(String ip, DataInputStream entrada, DataOutputStream saida) {
         this.ip = ip;
+        this.entrada = entrada;
+        this.saida = saida;
         this.conexoes = 0;
+    }
+    
+    public void enviarDado(String dado) throws IOException{
+        this.saida.writeUTF(dado);
+    }
+    
+    public String receberDado() throws IOException{
+        return this.entrada.readUTF();
     }
     
 

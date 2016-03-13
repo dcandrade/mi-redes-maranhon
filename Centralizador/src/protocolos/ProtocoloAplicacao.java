@@ -11,4 +11,6 @@ package protocolos;
  */
 public class ProtocoloAplicacao {
     public final static int PORT = 8888;
+    public final static int CLIENTE = 1;
+    public final static int SERVIDOR = 2;
 }

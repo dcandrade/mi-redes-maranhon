@@ -21,9 +21,7 @@ public class TrataServidores implements Runnable {
 
     @Override
     public void run() {
-
-        //servidoresAplicacao.add(new ServidorAplicacao("192.111.1.0", 12345));
-        //Collections.sort(servidoresAplicacao, new ServidorAplicacao(null,0));
+        
     }
 
 }
