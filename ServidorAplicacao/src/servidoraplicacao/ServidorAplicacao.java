@@ -10,6 +10,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import model.TrataCliente;
 
 /**
  *
@@ -20,6 +21,8 @@ public class ServidorAplicacao {
     /**
      * @param args the command line arguments
      */
+    private boolean semaforo=false;
+    
     public static void main(String[] args) throws IOException {
         Socket novo = new Socket("localhost",12345);
         
@@ -42,6 +45,8 @@ public class ServidorAplicacao {
             System.out.println("Nova conexão com o cliente "
                     + cliente.getInetAddress().getHostAddress()
             );
+            TrataCliente tc = new TrataCliente();
+            new Thread(tc).run();
             
         }
     }
