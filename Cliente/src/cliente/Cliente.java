@@ -20,16 +20,22 @@ public class Cliente {
      * @param args the command line arguments
      */
     public static void main(String[] args) throws IOException {
-        Socket novo = new Socket("localhost",12345);
+        Socket novo = new Socket("192.168.25.225",12345);
         
         DataOutputStream saida = new DataOutputStream(novo.getOutputStream());
         DataInputStream entrada = new DataInputStream(novo.getInputStream());
         saida.writeInt(1);
         String endereco = entrada.readUTF();
         String ip = endereco.substring(0,endereco.indexOf("/"));
-        String porta = endereco.substring(endereco.indexOf("/")+1,endereco.length());
-        novo = new Socket (ip, Integer.parseInt(porta));
+        int porta = Integer.parseInt(endereco.substring(endereco.indexOf("/")+1,endereco.length()));
+        
+        System.out.println("IP: "+ip+"Porta: "+porta+"");
+        novo.close();
+        
+        novo = new Socket (ip, porta);
+        saida = new DataOutputStream(novo.getOutputStream());
 
+        System.out.println("IP: "+ip+"Porta: "+porta+"");
         while (true){
             System.out.println("Aqui");
             
