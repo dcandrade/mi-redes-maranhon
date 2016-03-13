@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 import model.ServidorAplicacao;
 import model.TrataServidores;
+import protocolos.ProtocoloAplicacao;
 
 /**
  *
@@ -42,9 +43,9 @@ public class Centralizador {
 
             if (opcoes == 0) {//se um servidor conectou
 
-                ServidorAplicacao novo = new ServidorAplicacao(cliente.getInetAddress().getHostAddress(), cliente.getPort() + 1);
+                ServidorAplicacao novo = new ServidorAplicacao(cliente.getInetAddress().getHostAddress());
                 servidoresAplicacao.add(novo);
-                Collections.sort(servidoresAplicacao, new ServidorAplicacao(null, 0));//ordena a lista com a quantidade de conexões ativas
+              //Collections.sort(servidoresAplicacao, new ServidorAplicacao(null));//ordena a lista com a quantidade de conexões ativas
                 TrataServidores ts = new TrataServidores(servidoresAplicacao);//alterarValores de conexão ativas/desativas e verificar servidor online
                 saida.writeInt(cliente.getPort() + 1);//envia ao servidor sua porta de conexão com os clientes
                 System.out.println("Aqui");
@@ -53,11 +54,12 @@ public class Centralizador {
             } else if (opcoes == 1) { //se um cliente conectou
                 System.out.println("aaa");
                 saida.writeUTF(servidoresAplicacao.get(0).getIp().concat("/").
-                        concat(Integer.toString(servidoresAplicacao.get(0).getPorta()))); //envia ip/porta ex.: 192.168.0.1/12345
-                servidoresAplicacao.get(0).novaConexaoAtiva();//atualiza a quantidade de conexões ativas
+                        concat(Integer.toString(ProtocoloAplicacao.PORT))); //envia ip/porta ex.: 192.168.0.1/12345
+              
+                //  servidoresAplicacao.get(0).novaConexaoAtiva();//atualiza a quantidade de conexões ativas
                 System.out.println("abb");
 
-                Collections.sort(servidoresAplicacao, new ServidorAplicacao(null, 0));//ordena a lista com a quantidade de conexões ativas
+                //Collections.sort(servidoresAplicacao, new ServidorAplicacao(null, 0));//ordena a lista com a quantidade de conexões ativas
             }
 
         }
