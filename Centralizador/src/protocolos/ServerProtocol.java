@@ -9,8 +9,8 @@ package protocolos;
  *
  * @author dcandrade
  */
-public class ProtocoloCliente {
-    public static final int PORTA = 12345;
-    public static final int IP_SERVIDOR = 1;
-    public static final String SEPARADOR = "-";
+public class ServerProtocol {
+    public static final int BEAT = 400;
+    public final static int PORT = 12345;
+    public final static int ITS_A_SERVER = 2;
 }

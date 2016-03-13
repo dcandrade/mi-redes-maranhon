@@ -6,19 +6,17 @@
 package model;
 
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author dcandrade
  */
 public class ServerWatcher extends Thread{
-    private ServidorAplicacao server;
-    public static final int TIMEOUT = 5000;
-    public static final int MAX_TOLERANCE = 1000;
-    private Controller controller;
-    private Counter counter;
+    private final ServidorAplicacao server;
+    public static final int TIMEOUT = 500;
+    public static final int MAX_TOLERANCE = 100;
+    private final Controller controller;
+    private  boolean isAlive = true;
     
     public ServerWatcher(ServidorAplicacao server, Controller controller) {
         this.server = server;
@@ -27,6 +25,7 @@ public class ServerWatcher extends Thread{
     
     private void killServer(){
         this.controller.removerServidor(server.getIp());
+        System.out.println("Um servidor ficou offline!");
     }
     
     public void timeIsOver(){
@@ -36,14 +35,13 @@ public class ServerWatcher extends Thread{
 
     @Override
     public void run() {
-        this.counter = new Counter(this, TIMEOUT + MAX_TOLERANCE);
-        while(true){
+        while(this.isAlive){
             try {
                 this.server.receberDado();
-                this.counter.interrupt();
-                this.counter = new Counter(this, TIMEOUT+MAX_TOLERANCE);
-                this.counter.start();
             } catch (IOException ex) {
+                //Servidor caiu
+                this.killServer();
+                this.isAlive = false;
             }
         }
     }

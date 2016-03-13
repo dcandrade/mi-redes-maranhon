@@ -5,19 +5,15 @@
  */
 package centralizador;
 
-import protocolos.ProtocoloCliente;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import model.Controller;
-import model.TrataServidores;
-import protocolos.ProtocoloAplicacao;
+import protocolos.ClientProtocol;
+import protocolos.ServerProtocol;
+import util.IPTuple;
 
 /**
  *
@@ -25,9 +21,12 @@ import protocolos.ProtocoloAplicacao;
  */
 public class Centralizador {
 
+    private static int ServerID = 0;
+    private static int PORT = 8801;
+
     public static void main(String[] args) throws IOException {
-        ServerSocket servidor = new ServerSocket(ProtocoloCliente.PORTA);
-        System.out.println("Porta " + ProtocoloCliente.PORTA + " aberta.");
+        ServerSocket servidor = new ServerSocket(ClientProtocol.PORTA);
+        System.out.println("Porta " + ClientProtocol.PORTA + " aberta.");
         System.out.println("Servidor Online.");
 
         Controller controller = new Controller();
@@ -40,20 +39,26 @@ public class Centralizador {
 
             int tipoCliente = entrada.readInt();
 
-            if (tipoCliente == ProtocoloAplicacao.CLIENTE) {
+            if (tipoCliente == ClientProtocol.IM_A_CLIENT) {
                 System.out.println("Novo cliente:  " + cliente.getInetAddress().getHostAddress());
-
+                IPTuple server = controller.getProximoServidor();
                 StringBuilder pacote = new StringBuilder();
-                pacote.append(ProtocoloCliente.IP_SERVIDOR); //Operação
-                pacote.append(ProtocoloCliente.SEPARADOR);
-                pacote.append(controller.getProximoServidor()); //IP do Servidor
-                
-                
+                pacote.append(ClientProtocol.IP_SERVIDOR); //Operação
+                pacote.append(ClientProtocol.SEPARADOR);
+                pacote.append(server.getIP()); //IP do Servidor
+                pacote.append(ClientProtocol.SEPARADOR);
+                pacote.append(server.getPort()); //Porta do Servidor
+
                 saida.writeUTF(pacote.toString());//Envia IP do servidor para o cliente
                 cliente.close(); //Fecha a conexão com o cliente
-            }else{
+            } else if(tipoCliente == ServerProtocol.ITS_A_SERVER) {
+                System.out.println("Servidor conectado");
+                saida.writeInt(Centralizador.ServerID++);
+                int port = Centralizador.PORT++;
+                saida.writeInt(port);
                 String ip = cliente.getInetAddress().getHostAddress();
-                controller.addServidor(ip, entrada, saida);
+                controller.addServidor(ip, port, entrada, saida);
+                System.out.println("Total de Servidores: " + controller.amountOfServers());
             }
         }
     }

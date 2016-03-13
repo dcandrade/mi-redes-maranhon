@@ -5,7 +5,6 @@
  */
 package model;
 
-import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import util.IPTuple;
 
 /**
  * Gerencia os servidores de aplicação
@@ -25,33 +25,28 @@ import java.util.TreeMap;
 public class Controller {
 
     //Mantém os servidores ordenados pelo critério de num de conexões
-    private List<ServidorAplicacao> ordemServidores;
+    private final List<ServidorAplicacao> ordemServidores;
     //Mapeia o IP para o numero de conexoes
-    private Map<String, ServidorAplicacao> mapaServidores;
-    private Map<String, ServerWatcher> watchers;
+    private final Map<String, ServidorAplicacao> mapaServidores;
 
     public Controller() {
         this.ordemServidores = new ArrayList<>();
         this.mapaServidores = new TreeMap<>();
-        this.watchers = new HashMap<>();
     }
 
-    public void addServidor(String ip, DataInputStream entrada, DataOutputStream saida) {
-        ServidorAplicacao servidor = new ServidorAplicacao(ip, entrada, saida);
+    public void addServidor(String ip, int port, DataInputStream entrada, DataOutputStream saida) {
+        ServidorAplicacao servidor = new ServidorAplicacao(ip, port, entrada, saida);
         this.ordemServidores.add(servidor);
         this.mapaServidores.put(ip, servidor);
         this.ordenarServidores();
 
-         
         ServerWatcher watcher = new ServerWatcher(servidor, this);
-        this.watchers.put(ip, watcher);
         watcher.start();
     }
 
     public void removerServidor(String ip) {
         ServidorAplicacao servidor = this.mapaServidores.remove(ip);
         this.ordemServidores.remove(servidor);
-        this.watchers.remove(ip).interrupt();
     }
 
     public void decrementarConexoesServidor(String ip) {
@@ -59,12 +54,17 @@ public class Controller {
         this.ordenarServidores();
     }
 
-    public String getProximoServidor() {
+    public int amountOfServers() {
+        return this.ordemServidores.size();
+    }
+
+    public IPTuple getProximoServidor() {
         ServidorAplicacao servidor = this.ordemServidores.get(0);
         servidor.incrementarConexoes();
         this.ordenarServidores();
-
-        return servidor.getIp();
+        
+        return new IPTuple(servidor.getIp(), servidor.getPort());
+        
     }
 
     public Iterator<ServidorAplicacao> getServidores() {
@@ -82,9 +82,9 @@ public class Controller {
     public static void main(String[] args) {
         Controller c = new Controller();
 
-        c.addServidor("S1", null, null);
-        c.addServidor("S2", null, null);
-        c.addServidor("S3", null, null);
+        c.addServidor("S1", 0, null, null);
+        c.addServidor("S2", 0, null, null);
+        c.addServidor("S3", 0, null, null);
 
         c.getProximoServidor();
         c.getProximoServidor();
@@ -125,3 +125,4 @@ public class Controller {
     }
 
 }
+

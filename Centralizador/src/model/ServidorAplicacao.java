@@ -16,12 +16,14 @@ import java.io.IOException;
 public class ServidorAplicacao implements Comparable<ServidorAplicacao>{
 
     private final String ip;
+    private final int port;
     private Integer conexoes;
     private final DataInputStream entrada;
     private final DataOutputStream saida;
 
-    public ServidorAplicacao(String ip, DataInputStream entrada, DataOutputStream saida) {
+    public ServidorAplicacao(String ip, int port, DataInputStream entrada, DataOutputStream saida) {
         this.ip = ip;
+        this.port = port;
         this.entrada = entrada;
         this.saida = saida;
         this.conexoes = 0;
@@ -38,6 +40,10 @@ public class ServidorAplicacao implements Comparable<ServidorAplicacao>{
 
     public String getIp() {
         return ip;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public Integer getConexoes() {
