@@ -9,37 +9,38 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.StringTokenizer;
+import protocols.Protocol;
 
 /**
  *
  * @author Kayo
+ * @author Daniel Andrade
  */
 public class Cliente {
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) throws IOException {
-        Socket novo = new Socket("192.168.25.225",12345);
-        
-        DataOutputStream saida = new DataOutputStream(novo.getOutputStream());
-        DataInputStream entrada = new DataInputStream(novo.getInputStream());
-        saida.writeInt(1);
-        String endereco = entrada.readUTF();
-        String ip = endereco.substring(0,endereco.indexOf("/"));
-        int porta = Integer.parseInt(endereco.substring(endereco.indexOf("/")+1,endereco.length()));
-        
-        System.out.println("IP: "+ip+"Porta: "+porta+"");
-        novo.close();
-        
-        novo = new Socket (ip, porta);
-        saida = new DataOutputStream(novo.getOutputStream());
+        System.out.println("Conectando ao redirecionador");
+        Socket socket = new Socket(Protocol.SERVER, Protocol.PORT);
 
-        System.out.println("IP: "+ip+"Porta: "+porta+"");
-        while (true){
-            System.out.println("Aqui");
-            
-        }
+        DataOutputStream saida = new DataOutputStream(socket.getOutputStream());
+        DataInputStream entrada = new DataInputStream(socket.getInputStream());
+        saida.writeInt(Protocol.IM_A_CLIENT);
+
+        StringTokenizer endereco = new StringTokenizer(entrada.readUTF(), Protocol.SEPARATOR);
+        System.out.println("Endereço do servidor adquirido");
+        socket.close();
+        
+        endereco.nextToken();
+        String ip = endereco.nextToken();
+        int port = Integer.parseInt(endereco.nextToken());
+        
+        socket = new Socket(ip, port);
+        
+        System.out.println("Conectado!");
+        
+        while(true);
+        
     }
-    
+
 }
