@@ -43,8 +43,8 @@ public class Centralizer {
                 System.out.println("Novo cliente:  " + client.getInetAddress().getHostAddress());
                 IPTuple applicationServer = controller.getProximoServidor();
                 StringBuilder packet = new StringBuilder();
-                packet.append(ClientProtocol.IP_SERVIDOR); //Operation
-                packet.append(ClientProtocol.SEPARADOR);
+                //packet.append(ClientProtocol.IP_SERVIDOR); //Operation
+                //packet.append(ClientProtocol.SEPARADOR);
                 packet.append(applicationServer.getIP()); //Server's IP
                 packet.append(ClientProtocol.SEPARADOR);
                 packet.append(applicationServer.getPort()); //Server's Port
@@ -52,9 +52,8 @@ public class Centralizer {
                 output.writeUTF(packet.toString());//Sends the address to the new client.
                 client.close(); //Closes the conection
             } else if(kindOfClient == ServerProtocol.ITS_A_SERVER) {
-                System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress());
-                output.writeInt(Centralizer.ServerID++);
                 int port = Centralizer.PORT++;
+                System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress() + " : " + port);
                 output.writeInt(port);
                 String ip = client.getInetAddress().getHostAddress();
                 controller.addServer(ip, port, input, output);
@@ -62,5 +61,4 @@ public class Centralizer {
             }
         }
     }
-
 }

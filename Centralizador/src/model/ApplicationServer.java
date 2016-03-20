@@ -57,6 +57,11 @@ public class ApplicationServer implements Comparable<ApplicationServer>{
     public void decrementConnections() {
         this.connections--;
     }
+    
+    public String getIpPort(){
+        return this.ip + ":" + this.port;
+    }
+    
 
     @Override
     public int compareTo(ApplicationServer o) {
@@ -69,7 +74,7 @@ public class ApplicationServer implements Comparable<ApplicationServer>{
 
     @Override
     public String toString() {
-        return this.ip + ": "+this.connections;
+        return this.ip + ": " + this.port+"->"+this.connections;
     }
     
     

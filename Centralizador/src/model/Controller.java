@@ -9,7 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -37,20 +36,22 @@ public class Controller {
     public void addServer(String ip, int port, DataInputStream input, DataOutputStream output) {
         ApplicationServer server = new ApplicationServer(ip, port, input, output);
         this.orderOfServers.add(server);
-        this.mapOfServers.put(ip, server);
+        this.mapOfServers.put(server.getIpPort(), server);
         this.sortServers();
 
         ServerWatcher watcher = new ServerWatcher(server, this);
         watcher.start();
     }
 
-    public void removeServer(String ip) {
-        ApplicationServer server = this.mapOfServers.remove(ip);
-        this.orderOfServers.remove(server);
+    public void removeServer(String ipPort) {
+        System.err.println("Removendo: "+ipPort);
+        ApplicationServer server = this.mapOfServers.remove(ipPort);
+        System.err.println("Removendo: "+this.orderOfServers.remove(server));
+        System.err.println(this.orderOfServers.size());
     }
 
-    public void decrementConnectionsOnServer(String ip) {
-        this.mapOfServers.get(ip).decrementConnections();
+    public void decrementConnectionsOnServer(String ipPort) {
+        this.mapOfServers.get(ipPort).decrementConnections();
         this.sortServers();
     }
 
@@ -71,8 +72,8 @@ public class Controller {
         return this.orderOfServers.iterator();
     }
 
-    public int getNumConexoes(String ip) {
-        return this.mapOfServers.get(ip).getConexoes();
+    public int getNumConexoes(String ipPort) {
+        return this.mapOfServers.get(ipPort).getConexoes();
     }
 
     private void sortServers() {

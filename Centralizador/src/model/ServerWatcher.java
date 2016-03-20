@@ -24,7 +24,7 @@ public class ServerWatcher extends Thread{
     }
     
     private void killServer(){
-        this.controller.removeServer(server.getIp());
+        this.controller.removeServer(server.getIpPort());
         System.out.println("Um servidor ficou offline!");
     }
     
