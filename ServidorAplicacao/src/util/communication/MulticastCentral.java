@@ -34,7 +34,7 @@ public class MulticastCentral {
         this.handler = handler;
     }
 
-    private int createPacket(int protocolID, String message) {
+    public int createPacket(int protocolID, String message) {
         StringBuilder packet = new StringBuilder();
         packet.append(ServerProtocol.SERVER_STUFF).append(ServerProtocol.SEPARATOR);
         packet.append(this.id).append(ServerProtocol.SEPARATOR);
@@ -80,11 +80,15 @@ public class MulticastCentral {
     }
 
     private void send(String packet) throws SocketException, IOException {
-        DatagramSocket socket = new DatagramSocket(PORT);
+        DatagramSocket socket = new DatagramSocket();
         byte[] buffer = packet.getBytes();
         DatagramPacket dpacket = new DatagramPacket(buffer, buffer.length, this.address, MulticastCentral.PORT);
 
         socket.send(dpacket);
+    }
+    
+    public void send(int id) throws IOException{
+        this.send(this.packets.get(id));
     }
 
     public void processPacket(String packet) throws IOException {
@@ -106,6 +110,7 @@ public class MulticastCentral {
             int sender = Integer.parseInt(tokenizer.nextToken());
             this.sendConfirmation(idPacket, sender);
             this.waitReconfirmation(idPacket, sender);
+            
             if (tokenizer.hasMoreTokens()) {
                 StringBuilder builder = new StringBuilder();
                 while (tokenizer.hasMoreTokens()) {
