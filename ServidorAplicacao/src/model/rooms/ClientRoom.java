@@ -19,20 +19,20 @@ import protocols.ClientProtocol;
  */
 public class ClientRoom implements Runnable {
 
-    private DataInputStream dis;
-    private final DataOutputStream dos;
+    private final DataInputStream input;
+    private final DataOutputStream output;
 
     public ClientRoom(Socket client) throws IOException {
-        this.dis = new DataInputStream(client.getInputStream());
-        this.dos = new DataOutputStream(client.getOutputStream());
+        this.input = new DataInputStream(client.getInputStream());
+        this.output = new DataOutputStream(client.getOutputStream());
     }
 
     private void sendMessage(int protocol, String message) throws IOException {
-        this.dos.writeUTF(protocol + ClientProtocol.SEPARATOR + message);
+        this.output.writeUTF(protocol + ClientProtocol.SEPARATOR + message);
     }
 
     private String readMessage() throws IOException {
-        return this.dis.readUTF();
+        return this.input.readUTF();
     }
 
     @Override
@@ -47,7 +47,7 @@ public class ClientRoom implements Runnable {
                     //tratar as requisições do cliente
                 }
             }
-        } catch (Exception ex) {
+        } catch (IOException | NumberFormatException ex) {
             System.err.println("Erro em ClientRoom \n" + ex);
         }
     }

@@ -10,7 +10,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import model.listeners.ClientListener;
-import model.rooms.Heartbeat;
 import protocols.CentralizerProtocol;
 
 /**
@@ -18,20 +17,46 @@ import protocols.CentralizerProtocol;
  * @author dcandrade
  */
 public class ApplicationServer {
+    private static int ID = 1;
+    private DataInputStream input;
+    private DataOutputStream output;
+    private final int id;
+    private int port;
+    
+    public ApplicationServer(){
+        this.id = ApplicationServer.ID++;
+    }
+    
+    public void connectAsServer() throws IOException{
+        Socket socket = new Socket(CentralizerProtocol.IP, CentralizerProtocol.PORT);
+        this.input = new DataInputStream(socket.getInputStream());
+        this.output = new DataOutputStream(socket.getOutputStream());
+        
+        output.writeInt(CentralizerProtocol.IM_A_SERVER);
+        this.port = input.readInt();
+    }
+    
+    public void listenClients(int id, int port) throws IOException{
+        ClientListener listener = new ClientListener(id, port);
+       // Heartbeat heartbeat = new Heartbeat(dos);
+        //heartbeat.beat();
+        listener.run();
+    }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public int getPort() {
+        return port;
+    }
+    
 
     public static void main(String[] args) throws IOException {
-        System.out.println("Conectando com o centralizador...");
-        Socket socket = new Socket(CentralizerProtocol.IP, CentralizerProtocol.PORT);
-        DataInputStream dis = new DataInputStream(socket.getInputStream());
-        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-
-        dos.writeInt(CentralizerProtocol.IM_A_SERVER);
-        int id = dis.readInt();
-        int port = dis.readInt();
-        System.out.println("ID Adquirida: " + id);
-        ClientListener clientListener = new ClientListener(id, port);
-        Heartbeat heartbeat = new Heartbeat(dos);
-        heartbeat.beat();
-        clientListener.run();
+        ApplicationServer app = new ApplicationServer();
+        app.connectAsServer();
+        System.out.println("Iniciando servidor "+app.getId()+" em "+app.getPort());
+        app.listenClients(app.getId(), app.getPort());
+        System.out.println("Servidor iniciado.");
     }
 }
