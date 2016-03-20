@@ -8,6 +8,7 @@ package util;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Properties;
 
@@ -20,7 +21,13 @@ public class LoginEngine {
     
     public LoginEngine() throws IOException{
         this.players = new Properties();
-        this.players.load(new FileInputStream("login.data"));
+        try{
+            this.players.load(new FileInputStream("login.data"));
+            } catch (FileNotFoundException ex) {
+            FileWriter arq = new FileWriter("login.data");
+            arq.close();
+
+        }
     }
     
     //Register a new player
