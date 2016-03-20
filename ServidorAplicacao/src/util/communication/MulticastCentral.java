@@ -47,10 +47,6 @@ public class MulticastCentral {
         return MulticastCentral.packetNumber++;
     }
 
-    private void registerPacket(int id, String packet) {
-        
-    }
-
     private void markPacketAsReceived(int id) {
         this.packets.put(id, ServerProtocol.RECEIVED);
     }
@@ -84,7 +80,7 @@ public class MulticastCentral {
     }
 
     private void send(String packet) throws SocketException, IOException {
-        DatagramSocket socket = new DatagramSocket();
+        DatagramSocket socket = new DatagramSocket(PORT);
         byte[] buffer = packet.getBytes();
         DatagramPacket dpacket = new DatagramPacket(buffer, buffer.length, this.address, MulticastCentral.PORT);
 
