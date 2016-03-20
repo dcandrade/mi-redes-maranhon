@@ -26,13 +26,15 @@ public class MulticastCentral {
     private final int id;
     private static int packetNumber = 1;
     private final TreeMap<Integer, String> packets;
+    private final TreeMap<Integer, TreeMap<Integer, String>> cache;
     private final ServerRequestHandler handler;
-    private boolean debug;
+    private final boolean debug;
 
     public MulticastCentral(int id, ServerRequestHandler handler, boolean debug) throws UnknownHostException {
         this.address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);
         this.id = id;
         this.packets = new TreeMap<>();
+        this.cache = new TreeMap<>();
         this.handler = handler;
         this.debug = debug;
     }
@@ -66,8 +68,9 @@ public class MulticastCentral {
         this.packets.put(id, ServerProtocol.RECEIVED);
     }
 
-    private void endPacketTransaction(int id) {
+    private void endPacketTransaction(int id, int sender) {
         this.packets.remove(id);
+        this.cache.get(sender).remove(id);
     }
 
     public boolean isTransactionFinished(int id) {
@@ -161,10 +164,23 @@ public class MulticastCentral {
             } else if (protocol == ServerProtocol.RECONFIRMATION) {
                 System.err.println("Transação do pacote " + packetID
                         + " concluída com sucesso");
-                this.endPacketTransaction(id);
+                this.endPacketTransaction(packetID, sender);
             }
 
         } else if (operation == ServerProtocol.SERVER_STUFF) {
+            //Só processa pacotes que não foram processados antes
+            if (cache.get(sender) == null) {
+                this.cache.put(sender, new TreeMap<Integer, String>());
+            }
+            if (cache.get(sender).get(packetID) != null) {
+                System.err.println(cache.get(sender).get(packetID));
+                System.err.println("Pacote já foi processado");
+                this.sendConfirmation(packetID, sender);
+                return;
+            } else {
+                this.cache.get(sender).put(packetID, packet);
+            }
+            
             if (debug) {
                 System.err.println("Operação de Servidor, enviando confirmação.");
             }
@@ -172,14 +188,13 @@ public class MulticastCentral {
             this.markPacketAsReceived(packetID);
             this.sendConfirmation(packetID, this.id);
             this.waitReconfirmation(id);
-            
+
             StringBuilder request = new StringBuilder();
-            while(tokenizer.hasMoreTokens()){
+            while (tokenizer.hasMoreTokens()) {
                 request.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
             }
-            
-            this.handler.processRequest(request.toString());
 
+            //this.handler.processRequest(request.toString());
         }
     }
 
