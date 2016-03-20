@@ -12,19 +12,19 @@ import java.io.IOException;
  * @author dcandrade
  */
 public class ServerWatcher extends Thread{
-    private final ServidorAplicacao server;
+    private final ApplicationServer server;
     public static final int TIMEOUT = 500;
     public static final int MAX_TOLERANCE = 100;
     private final Controller controller;
     private  boolean isAlive = true;
     
-    public ServerWatcher(ServidorAplicacao server, Controller controller) {
+    public ServerWatcher(ApplicationServer server, Controller controller) {
         this.server = server;
         this.controller = controller;
     }
     
     private void killServer(){
-        this.controller.removerServidor(server.getIp());
+        this.controller.removeServer(server.getIp());
         System.out.println("Um servidor ficou offline!");
     }
     
@@ -37,7 +37,7 @@ public class ServerWatcher extends Thread{
     public void run() {
         while(this.isAlive){
             try {
-                this.server.receberDado();
+                this.server.recieveData();
             } catch (IOException ex) {
                 //Servidor caiu
                 this.killServer();

@@ -25,74 +25,74 @@ import util.IPTuple;
 public class Controller {
 
     //Mantém os servidores ordenados pelo critério de num de conexões
-    private final List<ServidorAplicacao> ordemServidores;
+    private final List<ApplicationServer> orderOfServers;
     //Mapeia o IP para o numero de conexoes
-    private final Map<String, ServidorAplicacao> mapaServidores;
+    private final Map<String, ApplicationServer> mapOfServers;
 
     public Controller() {
-        this.ordemServidores = new ArrayList<>();
-        this.mapaServidores = new TreeMap<>();
+        this.orderOfServers = new ArrayList<>();
+        this.mapOfServers = new TreeMap<>();
     }
 
-    public void addServidor(String ip, int port, DataInputStream entrada, DataOutputStream saida) {
-        ServidorAplicacao servidor = new ServidorAplicacao(ip, port, entrada, saida);
-        this.ordemServidores.add(servidor);
-        this.mapaServidores.put(ip, servidor);
-        this.ordenarServidores();
+    public void addServer(String ip, int port, DataInputStream input, DataOutputStream output) {
+        ApplicationServer server = new ApplicationServer(ip, port, input, output);
+        this.orderOfServers.add(server);
+        this.mapOfServers.put(ip, server);
+        this.sortServers();
 
-        ServerWatcher watcher = new ServerWatcher(servidor, this);
+        ServerWatcher watcher = new ServerWatcher(server, this);
         watcher.start();
     }
 
-    public void removerServidor(String ip) {
-        ServidorAplicacao servidor = this.mapaServidores.remove(ip);
-        this.ordemServidores.remove(servidor);
+    public void removeServer(String ip) {
+        ApplicationServer server = this.mapOfServers.remove(ip);
+        this.orderOfServers.remove(server);
     }
 
-    public void decrementarConexoesServidor(String ip) {
-        this.mapaServidores.get(ip).decrementarConexoes();
-        this.ordenarServidores();
+    public void decrementConnectionsOnServer(String ip) {
+        this.mapOfServers.get(ip).decrementConnections();
+        this.sortServers();
     }
 
     public int amountOfServers() {
-        return this.ordemServidores.size();
+        return this.orderOfServers.size();
     }
 
     public IPTuple getProximoServidor() {
-        ServidorAplicacao servidor = this.ordemServidores.get(0);
-        servidor.incrementarConexoes();
-        this.ordenarServidores();
+        ApplicationServer server = this.orderOfServers.get(0);
+        server.incrementConnections();
+        this.sortServers();
         
-        return new IPTuple(servidor.getIp(), servidor.getPort());
+        return new IPTuple(server.getIp(), server.getPort());
         
     }
 
-    public Iterator<ServidorAplicacao> getServidores() {
-        return this.ordemServidores.iterator();
+    public Iterator<ApplicationServer> getServidores() {
+        return this.orderOfServers.iterator();
     }
 
     public int getNumConexoes(String ip) {
-        return this.mapaServidores.get(ip).getConexoes();
+        return this.mapOfServers.get(ip).getConexoes();
     }
 
-    private void ordenarServidores() {
-        Collections.sort(this.ordemServidores);
+    private void sortServers() {
+        Collections.sort(this.orderOfServers);
     }
 
     public static void main(String[] args) {
         Controller c = new Controller();
 
-        c.addServidor("S1", 0, null, null);
-        c.addServidor("S2", 0, null, null);
-        c.addServidor("S3", 0, null, null);
+        c.addServer("S1", 0, null, null);
+        c.addServer("S2", 0, null, null);
+        c.addServer("S3", 0, null, null);
 
         c.getProximoServidor();
         c.getProximoServidor();
         c.getProximoServidor(); //Ao fina disso cada um deve estar com 1
 
-        Iterator<ServidorAplicacao> servidores = c.getServidores();
-        while (servidores.hasNext()) {
-            System.out.println(servidores.next());
+        Iterator<ApplicationServer> server = c.getServidores();
+        while (server.hasNext()) {
+            System.out.println(server.next());
         }
 
         System.out.println("---");
@@ -105,21 +105,21 @@ public class Controller {
         c.getProximoServidor();
         c.getProximoServidor(); //Ao fina disso cada um deve estar com 3
 
-        c.decrementarConexoesServidor("S2");
-        c.decrementarConexoesServidor("S1");
+        c.decrementConnectionsOnServer("S2");
+        c.decrementConnectionsOnServer("S1");
 
-        servidores = c.getServidores();
-        while (servidores.hasNext()) {
-            System.out.println(servidores.next());
+        server = c.getServidores();
+        while (server.hasNext()) {
+            System.out.println(server.next());
         }
 
         System.out.println("---");
 
-        c.decrementarConexoesServidor("S2");
+        c.decrementConnectionsOnServer("S2");
 
-        servidores = c.getServidores();
-        while (servidores.hasNext()) {
-            System.out.println(servidores.next());
+        server = c.getServidores();
+        while (server.hasNext()) {
+            System.out.println(server.next());
         }
 
     }
