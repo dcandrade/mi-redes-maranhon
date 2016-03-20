@@ -26,7 +26,11 @@ public class MulticastReceiver extends Thread {
         this.socket.joinGroup(address);
         this.sender = sender;
     }
-
+    
+    public void joinGroup(InetAddress address) throws IOException{
+        this.socket.joinGroup(address);
+    }
+    
     @Override
     public void run() {
         byte[] inBuffer = new byte[256];
