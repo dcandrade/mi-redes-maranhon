@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import protocols.ServerProtocol;
 
 /**
  *
@@ -18,17 +19,13 @@ public class MulticastReceiver extends Thread {
 
     private static final int PORT = 8888;
     private final MulticastSocket socket;
-
     private final MulticastCentral sender;
 
-    public MulticastReceiver(InetAddress address, MulticastCentral sender) throws IOException {
+    public MulticastReceiver(MulticastCentral sender) throws IOException {
         this.socket = new MulticastSocket(PORT);
+        InetAddress address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);
         this.socket.joinGroup(address);
         this.sender = sender;
-    }
-    
-    public void joinGroup(InetAddress address) throws IOException{
-        this.socket.joinGroup(address);
     }
     
     @Override
@@ -41,9 +38,9 @@ public class MulticastReceiver extends Thread {
             try {
                 this.socket.receive(packet);
                 message = new String(inBuffer, 0, packet.getLength());
-
+                System.out.println("Mensagem Recebida: "+ message);
                 this.sender.processPacket(message);
-
+                
             } catch (IOException ex) {
                 //TODO
             }
