@@ -37,7 +37,7 @@ public class Cliente {
         
         socket = new Socket(ip, port);
         
-        System.out.println("Conectado!");
+        System.out.println("Conectado no servidor: "+ip);
         
         while(true);
         
