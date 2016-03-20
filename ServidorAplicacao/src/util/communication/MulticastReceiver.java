@@ -38,7 +38,7 @@ public class MulticastReceiver extends Thread {
             try {
                 this.socket.receive(packet);
                 message = new String(inBuffer, 0, packet.getLength());
-                System.out.println("Mensagem Recebida: "+ message);
+                //System.out.println("Mensagem Recebida: "+ message);
                 this.sender.processPacket(message);
                 
             } catch (IOException ex) {

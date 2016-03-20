@@ -16,21 +16,23 @@ import protocols.ServerProtocol;
  */
 public class PacketWatcher implements Runnable {
 
-    private static int TIMEOUT = 100;
+    private static int TIMEOUT = 2000;
     private MulticastCentral sender;
     private final int id;
     private int idSender;
     private final int operation;
 
-    public PacketWatcher(int id) {
+    public PacketWatcher(int packetID, MulticastCentral sender) {
         this.operation = ServerProtocol.WAITING_CONFIRMATION;
-        this.id = id;
+        this.id = packetID;
+        this.sender = sender;
     }
 
-    public PacketWatcher(int id, int idSender) {
+    public PacketWatcher(int id, int idSender, MulticastCentral sender) {
         this.operation = ServerProtocol.WAITING_RECONFIRMATION;
         this.id = id;
         this.idSender = idSender;
+        this.sender = sender;
     }
     
     public void watch(){
@@ -43,11 +45,15 @@ public class PacketWatcher implements Runnable {
         synchronized (this) {
             try {
                 if (operation == ServerProtocol.WAITING_CONFIRMATION) {
+                    this.wait(PacketWatcher.TIMEOUT);
                     while (!sender.isReceived(this.id)) {
+                        System.err.println("Resending packet");
                         this.sender.resendPacket(this.id);
-                        Thread.sleep(PacketWatcher.TIMEOUT);
+                        this.wait(PacketWatcher.TIMEOUT);
                     }
+                    System.exit(0);
                 } else if (operation == ServerProtocol.WAITING_RECONFIRMATION) {
+                    this.wait(PacketWatcher.TIMEOUT);
                     while (!sender.isTransactionFinished(id)) {
                         this.sender.sendConfirmation(id, idSender);
                         Thread.sleep(PacketWatcher.TIMEOUT);

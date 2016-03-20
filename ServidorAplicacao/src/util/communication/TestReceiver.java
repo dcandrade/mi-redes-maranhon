@@ -14,7 +14,7 @@ import java.net.UnknownHostException;
  */
 public class TestReceiver {
     public static void main(String[] args) throws UnknownHostException, IOException {
-         MulticastCentral mc = new MulticastCentral(2, null);
+         MulticastCentral mc = new MulticastCentral(2, null, false);
          MulticastReceiver mr = new MulticastReceiver(mc);
          mr.start();
     }

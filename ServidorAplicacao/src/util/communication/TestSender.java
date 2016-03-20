@@ -13,11 +13,12 @@ import java.net.UnknownHostException;
  * @author dcandrade
  */
 public class TestSender {
+
     public static void main(String[] args) throws UnknownHostException, IOException {
-        MulticastCentral mc = new MulticastCentral(5, null);
+        MulticastCentral mc = new MulticastCentral(5, null, false);
+        MulticastReceiver mr = new MulticastReceiver(mc);
+        mr.start();
         int packetID = mc.createPacket(9, "test packet");
-        mc.send(packetID);
-        packetID = mc.createPacket(10, "test packet2");
         mc.send(packetID);
     }
 }

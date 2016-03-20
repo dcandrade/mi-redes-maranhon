@@ -27,23 +27,27 @@ public class MulticastCentral {
     private static int packetNumber = 1;
     private final TreeMap<Integer, String> packets;
     private final ServerRequestHandler handler;
+    private boolean debug;
 
-    public MulticastCentral(int id, ServerRequestHandler handler) throws UnknownHostException {
+    public MulticastCentral(int id, ServerRequestHandler handler, boolean debug) throws UnknownHostException {
         this.address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);
         this.id = id;
         this.packets = new TreeMap<>();
         this.handler = handler;
+        this.debug = debug;
     }
 
     public int createPacket(int protocolID, String message) {
-        System.out.println("::Creating packet::");
-        System.out.println("Properties:");
-        System.out.println("Type: "+ServerProtocol.SERVER_STUFF);
-        System.out.println("Sender ID: " + this.id);
-        System.out.println("Packet Number: "+MulticastCentral.packetNumber);
-        System.out.println("Application Protocol: " + protocolID);
-        System.out.println("Message: " + message);
-        System.out.println(":::");
+        if (debug) {
+            System.err.println("::Creating packet::");
+            System.err.println("Properties:");
+            System.err.println("Type: " + ServerProtocol.SERVER_STUFF);
+            System.err.println("Sender ID: " + this.id);
+            System.err.println("Packet Number: " + MulticastCentral.packetNumber);
+            System.err.println("Application Protocol: " + protocolID);
+            System.err.println("Message: " + message);
+            System.err.println(":::");
+        }
         StringBuilder packet = new StringBuilder();
         packet.append(ServerProtocol.SERVER_STUFF).append(ServerProtocol.SEPARATOR);
         packet.append(this.id).append(ServerProtocol.SEPARATOR);
@@ -52,7 +56,9 @@ public class MulticastCentral {
         packet.append(message);
 
         this.packets.put(MulticastCentral.packetNumber, packet.toString());
-        System.out.println("Packet created: " + packet.toString());
+        if (debug) {
+            System.out.println("Packet created: " + packet.toString());
+        }
         return MulticastCentral.packetNumber++;
     }
 
@@ -69,8 +75,9 @@ public class MulticastCentral {
     }
 
     private void watchPacket(int id) {
-        PacketWatcher watcher = new PacketWatcher(id);
-        watcher.watch();
+        PacketWatcher watcher = new PacketWatcher(id, this);
+        Thread t = new Thread(watcher);
+        t.start();
     }
 
     public boolean isReceived(int id) {
@@ -83,9 +90,14 @@ public class MulticastCentral {
 
     public void sendConfirmation(int idPacket, int sender) throws IOException {
         String packet = ServerProtocol.MULTICAST_STUFF + ServerProtocol.SEPARATOR
-                + ServerProtocol.CONFIRMATION + ServerProtocol.SEPARATOR
-                + idPacket + ServerProtocol.SEPARATOR + sender;
+                + sender + ServerProtocol.SEPARATOR
+                + idPacket + ServerProtocol.SEPARATOR
+                + ServerProtocol.CONFIRMATION;
+
+        PacketWatcher watcher = new PacketWatcher(id, sender, this);
         this.send(packet);
+        Thread t = new Thread(watcher);
+        t.start();
     }
 
     private void send(String packet) throws SocketException, IOException {
@@ -97,61 +109,93 @@ public class MulticastCentral {
     }
 
     public void send(int id) throws IOException {
-        System.out.println("Sending packet n" + id);
+        if (debug) {
+            System.out.println("Sending packet n" + id);
+        }
+
         this.send(this.packets.get(id));
+        this.watchPacket(id);
     }
 
     public void processPacket(String packet) throws IOException {
-        System.out.println("Packet received");
+        if (debug) {
+            System.err.print("Recebido: " + packet);
+        }
         StringTokenizer tokenizer = new StringTokenizer(packet, ServerProtocol.SEPARATOR);
-        tokenizer.nextToken(); //Discards the destiny
 
         int operation = Integer.parseInt(tokenizer.nextToken());
-        if (operation == ServerProtocol.MULTICAST_STUFF) {
-            int idPacket;
-            int sender;
-            switch (operation) {
-                case ServerProtocol.CONFIRMATION:
-                    idPacket = Integer.parseInt(tokenizer.nextToken());
-                    sender = Integer.parseInt(tokenizer.nextToken());
-                    this.markPacketAsReceived(idPacket);
-                    this.sendReconfirmation(idPacket, sender);
-                    break;
-                case ServerProtocol.RECONFIRMATION:
+        int sender = Integer.parseInt(tokenizer.nextToken());
+        int packetID = Integer.parseInt(tokenizer.nextToken());
 
-                    idPacket = Integer.parseInt(tokenizer.nextToken());
-                    this.endPacketTransaction(idPacket);
-                    System.out.println("Transaction " + idPacket + " completed");
-                    break;
+        if (sender == this.id) {
+            if (debug) {
+                System.err.println(" ->Pacote descartado");
             }
-        } else if (operation == ServerProtocol.SERVER_STUFF) {
-            int idPacket = Integer.parseInt(tokenizer.nextToken());
-            int sender = Integer.parseInt(tokenizer.nextToken());
-            this.sendConfirmation(idPacket, sender);
-            this.waitReconfirmation(idPacket, sender);
-
-            if (tokenizer.hasMoreTokens()) {
-                StringBuilder builder = new StringBuilder();
-                while (tokenizer.hasMoreTokens()) {
-                    builder.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
-                }
-                this.handler.processRequest(builder.toString());
-            }
+            return;
         }
 
+        if (debug) {
+            System.err.print("\nTipo: " + operation + ", ");
+            System.err.print("Remetente: " + sender + ", ");
+            System.err.println("ID do Pacote: " + packetID);
+
+        }
+
+        if (operation == ServerProtocol.MULTICAST_STUFF) {
+            int protocol = Integer.parseInt(tokenizer.nextToken());
+
+            if (debug) {
+                System.err.print("Operacao de Multicast: ");
+                System.err.println("Nº de Protocolo: " + protocol);
+            }
+
+            if (protocol == ServerProtocol.CONFIRMATION) {
+                if (debug) {
+                    System.out.println("Pacote " + packetID + " confirmado."
+                            + " Enviando reconfirmação");
+                }
+
+                this.markPacketAsReceived(packetID);
+                this.sendReconfirmation(packetID, this.id);
+
+            } else if (protocol == ServerProtocol.RECONFIRMATION) {
+                System.err.println("Transação do pacote " + packetID
+                        + " concluída com sucesso");
+                this.endPacketTransaction(id);
+            }
+
+        } else if (operation == ServerProtocol.SERVER_STUFF) {
+            if (debug) {
+                System.err.println("Operação de Servidor, enviando confirmação.");
+            }
+
+            this.markPacketAsReceived(packetID);
+            this.sendConfirmation(packetID, this.id);
+            this.waitReconfirmation(id);
+            
+            StringBuilder request = new StringBuilder();
+            while(tokenizer.hasMoreTokens()){
+                request.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
+            }
+            
+            this.handler.processRequest(request.toString());
+
+        }
     }
 
-    private void waitReconfirmation(int id, int idSender) {
-        System.out.println("Waiting reconfirmation...");
-        PacketWatcher watcher = new PacketWatcher(id, idSender);
+    private void waitReconfirmation(int packetID) {
+        if (debug) {
+            System.err.println("Waiting reconfirmation...");
+        }
+        PacketWatcher watcher = new PacketWatcher(packetID, this.id, this);
         watcher.watch();
     }
 
     private void sendReconfirmation(int idPacket, int sender) throws IOException {
-        System.out.println("Sending reconfirmation...");
         String packet = ServerProtocol.MULTICAST_STUFF + ServerProtocol.SEPARATOR
-                + ServerProtocol.RECONFIRMATION + ServerProtocol.SEPARATOR
-                + idPacket + ServerProtocol.SEPARATOR + sender;
+                + sender + ServerProtocol.SEPARATOR
+                + idPacket + ServerProtocol.SEPARATOR
+                + ServerProtocol.RECONFIRMATION;
         this.send(packet);
     }
 }
