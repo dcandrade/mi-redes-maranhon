@@ -14,6 +14,7 @@ import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import protocols.ServerProtocol;
+import util.BooksEngine;
 
 /**
  *
@@ -29,14 +30,15 @@ public class MulticastCentral {
     private final TreeMap<Integer, TreeMap<Integer, String>> cache;
     private final ServerRequestHandler handler;
     private final boolean debug;
-
-    public MulticastCentral(int id, ServerRequestHandler handler, boolean debug) throws UnknownHostException {
+    private BooksEngine bookEngine;
+    public MulticastCentral(int id, ServerRequestHandler handler,BooksEngine bookEngine, boolean debug) throws UnknownHostException {
         this.address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);
         this.id = id;
         this.packets = new TreeMap<>();
         this.cache = new TreeMap<>();
         this.handler = handler;
         this.debug = debug;
+        this.bookEngine = bookEngine;
     }
 
     public int createPacket(int protocolID, String message) {
@@ -143,7 +145,8 @@ public class MulticastCentral {
             System.err.println("ID do Pacote: " + packetID);
 
         }
-
+        
+                
         if (operation == ServerProtocol.MULTICAST_STUFF) {
             int protocol = Integer.parseInt(tokenizer.nextToken());
 
@@ -177,7 +180,9 @@ public class MulticastCentral {
                 System.err.println("Pacote já foi processado");
                 this.sendConfirmation(packetID, sender);
                 return;
-            } else {
+            }
+            
+            else {
                 this.cache.get(sender).put(packetID, packet);
             }
             

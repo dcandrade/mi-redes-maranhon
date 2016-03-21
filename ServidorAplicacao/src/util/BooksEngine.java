@@ -24,11 +24,17 @@ import java.util.Set;
  */
 public class BooksEngine {
     private final Properties players;
+    public static LinkedList<Boolean> semaphore = new LinkedList();
     
     public BooksEngine() throws IOException{
         this.players = new Properties();
         try {
             this.players.load(new FileInputStream("books.data"));
+            Iterator it = this.players.stringPropertyNames().iterator();
+            while(it.hasNext()){
+                semaphore.add(Boolean.FALSE);
+                it.next();
+            }
         } catch (FileNotFoundException ex) {
             FileWriter arq = new FileWriter("books.data");
             arq.close();
@@ -43,7 +49,7 @@ public class BooksEngine {
             FileWriter file = new FileWriter(name+".data");
             file.write(amount+"/"+value);
             file.close();
-
+            semaphore.add(Boolean.FALSE);
             return true; //Sucessfully registered
         }
         
@@ -63,6 +69,33 @@ public class BooksEngine {
              }
              return books;
 
+    }
+    
+    public synchronized  boolean turnOnSemaphore(String name) throws IOException{
+        LinkedList<Book> books = getBooks();
+        for (int i=0 ; i<books.size() ; i++){
+            if(books.get(i).getName().equals(name)){
+                if(!semaphore.get(i)){
+                semaphore.set(i, Boolean.TRUE);
+                SemaphoreTimeout sto = new SemaphoreTimeout(semaphore.get(i));
+                new Thread(sto).start();//making sure semaphore will be turned off
+                return true;
+                }
+            }
+        }
+        return false;
+    }
+    
+    public synchronized void turnOffSemaphore(String name) throws IOException{
+    LinkedList<Book> books = getBooks();
+        for (int i=0 ; i<books.size() ; i++){
+            if(books.get(i).getName().equals(name)){
+                if(semaphore.get(i)){
+                semaphore.set(i, Boolean.FALSE);
+                break;
+                }
+            }
+        }
     }
     
     public synchronized void decreaseAmount(String name, int decreaseBy) throws IOException{
