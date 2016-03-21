@@ -7,6 +7,7 @@ package util;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import model.Book;
 
 /**
  *
@@ -18,29 +19,29 @@ public class TestBooksEngine {
         BooksEngine be = new BooksEngine();
         be.newBook("HarryPorco", "50", "150,00");
         be.newBook("HarryPorco 2", "30", "250,00");
-        LinkedList<String[]> a = be.getBooks();
+        LinkedList<Book> a = be.getBooks();
         for (int i = 0 ; i < a.size() ; i++){
-            System.out.print("Book: "+a.get(i)[0]);
-            System.out.print(" Amount: "+a.get(i)[1]);
-            System.out.println(" Value: "+a.get(i)[2]);
+            System.out.print("Book: "+a.get(i).getName());
+            System.out.print(" Amount: "+a.get(i).getAmount());
+            System.out.println(" Value: "+a.get(i).getValue());
         }
         be.setAmount("HarryPorco", "100");
         be.setAmount("HarryPorco 2", "0");
         System.out.println("Amounts have changed");
         a = be.getBooks();
         for (int i = 0 ; i < a.size() ; i++){
-            System.out.print("Book: "+a.get(i)[0]);
-            System.out.print(" Amount: "+a.get(i)[1]);
-            System.out.println(" Value: "+a.get(i)[2]);
+            System.out.print("Book: "+a.get(i).getName());
+            System.out.print(" Amount: "+a.get(i).getAmount());
+            System.out.println(" Value: "+a.get(i).getValue());
         }
         be.setValue("HarryPorco", "200,00");
         be.setValue("HarryPorco 2", "80,00");
         System.out.println("Values have changed");
         a = be.getBooks();
         for (int i = 0 ; i < a.size() ; i++){
-            System.out.print("Book: "+a.get(i)[0]);
-            System.out.print(" Amount: "+a.get(i)[1]);
-            System.out.println(" Value: "+a.get(i)[2]);
+            System.out.print("Book: "+a.get(i).getName());
+            System.out.print(" Amount: "+a.get(i).getAmount());
+            System.out.println(" Value: "+a.get(i).getValue());
         }
 
     }

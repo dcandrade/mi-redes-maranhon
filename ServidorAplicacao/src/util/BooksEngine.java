@@ -4,7 +4,7 @@
  * and open the template in the editor.
  */
 package util;
-
+import model.Book;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -51,16 +51,16 @@ public class BooksEngine {
         return false; //Player name already exists
     }
     
-    public synchronized LinkedList<String[]> getBooks() throws IOException{
+    public synchronized LinkedList<Book> getBooks() throws IOException{
              Set<String> a=this.players.stringPropertyNames();
              Iterator<String> iterator = a.iterator();
-             LinkedList<String[]> books = new LinkedList();
+             LinkedList<Book> books = new LinkedList();
              while (iterator.hasNext()){
-                 String[] nova = new String [3];
-                 nova[0]=iterator.next();
-                 nova[1]=getAmount(nova[0]);
-                 nova[2]=getValue(nova[0]);
-                 books.add(nova);
+                 String name = iterator.next();
+                 String amount = getAmount(name);
+                 String value = getValue(name);
+                 Book newBook = new Book(name,amount,value);
+                 books.add(newBook);
              }
              return books;
 
