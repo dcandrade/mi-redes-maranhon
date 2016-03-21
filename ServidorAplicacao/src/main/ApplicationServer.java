@@ -17,16 +17,12 @@ import protocols.CentralizerProtocol;
  * @author dcandrade
  */
 public class ApplicationServer {
-    private static int ID = 1;
     private DataInputStream input;
     private DataOutputStream output;
-    private final int id;
+    private  int id;
     private int port;
     
-    public ApplicationServer(){
-        this.id = ApplicationServer.ID++;
-    }
-    
+
     public void connectAsServer() throws IOException{
         Socket socket = new Socket(CentralizerProtocol.IP, CentralizerProtocol.PORT);
         this.input = new DataInputStream(socket.getInputStream());
@@ -34,6 +30,7 @@ public class ApplicationServer {
         
         output.writeInt(CentralizerProtocol.IM_A_SERVER);
         this.port = input.readInt();
+        this.id = input.readInt();
     }
     
     public void listenClients(int id, int port) throws IOException{

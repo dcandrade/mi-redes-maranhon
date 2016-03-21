@@ -16,7 +16,7 @@ import model.Book;
 public class TestBooksEngine {
     
     public static void main(String[] args) throws IOException{
-        BooksEngine be = new BooksEngine();
+        BooksEngine be = BooksEngine.getInstance();
         be.newBook("HarryPorco", "50", "150,00");
         be.newBook("HarryPorco 2", "30", "250,00");
         LinkedList<Book> a = be.getBooks();

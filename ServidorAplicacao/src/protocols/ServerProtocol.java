@@ -19,9 +19,9 @@ public class ServerProtocol {
     public final static int RECONFIRMATION = 5; //ID PACKET + ID SENDER
     public final static int WAITING_CONFIRMATION = 6;
     public final static int WAITING_RECONFIRMATION = 7;
-    public final static int TURN_ON_SEMAPHORE = 8;
-    public final static int TURN_OFF_SEMAPHORE = 9;
-    
+    public final static int TURN_ON_SEMAPHORE = 8; // NOME DO LIVRO
+    public final static int TURN_OFF_SEMAPHORE = 9;// NOME DO LIVRO
+    public final static int BUY_BOOK = 10; //NOME LIVRO + QUANTIDADE
     public final static String RECEIVED = "ITSWITHME";
     public final static String MULTICAST_ADDRESS = "239.0.0.0";
     public final static int PORT = 12345;

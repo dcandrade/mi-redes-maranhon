@@ -55,6 +55,7 @@ public class Centralizer {
                 int port = Centralizer.PORT++;
                 System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress() + " : " + port);
                 output.writeInt(port);
+                output.writeInt(ServerID++);
                 String ip = client.getInetAddress().getHostAddress();
                 controller.addServer(ip, port, input, output);
                 System.out.println("Total de Servidores: " + controller.amountOfServers());

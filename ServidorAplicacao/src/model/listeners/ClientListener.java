@@ -16,11 +16,11 @@ import model.rooms.ClientRoom;
  */
 public class ClientListener implements Runnable{
         private final ServerSocket server;
-        private final int id;
+        private final int serverID;
 
-    public ClientListener(int id, int port) throws IOException {
+    public ClientListener(int serverID, int port) throws IOException {
         this.server = new ServerSocket(port);
-        this.id=id;
+        this.serverID=serverID;
     }
             
     @Override
@@ -31,7 +31,7 @@ public class ClientListener implements Runnable{
             try {
                 Socket client = server.accept();
                 System.out.println("Cliente " + client.getInetAddress().getHostAddress() + "se conectou.");
-                room = new ClientRoom(client);
+                room = new ClientRoom(client, serverID);
                 thread = new Thread(room);
                 thread.start();
             } catch (IOException ex) {

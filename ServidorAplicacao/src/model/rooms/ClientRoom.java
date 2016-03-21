@@ -7,11 +7,13 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
+import java.util.logging.Handler;
 import model.Book;
 import protocols.ClientProtocol;
 import util.BooksEngine;
 import util.communication.MulticastCentral;
 import util.communication.MulticastReceiver;
+import util.communication.ServerRequestHandler;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -29,16 +31,13 @@ public class ClientRoom implements Runnable {
     private final BooksEngine booksEngine;
     private final MulticastCentral mc;
     private final MulticastReceiver mr;
-        
-        
-    
-    
-    public ClientRoom(Socket client) throws IOException {
+
+    public ClientRoom(Socket client, int id) throws IOException {
         this.input = new DataInputStream(client.getInputStream());
         this.output = new DataOutputStream(client.getOutputStream());
-        this.booksEngine = new BooksEngine();
-        mc = new MulticastCentral(5, null,this.booksEngine, true);
+        mc = new MulticastCentral(id, true);
         mr = new MulticastReceiver(mc);
+        this.booksEngine = BooksEngine.getInstance(mc);
         mr.start();
     }
 
@@ -79,21 +78,9 @@ public class ClientRoom implements Runnable {
                 case ClientProtocol.GIVEMETHEBOOKS:
                     String name = token.nextToken();
                     int amount = Integer.parseInt(token.nextToken());
-                    if(booksEngine.getAmount(name) >= amount){
-                        while(booksEngine.turnOnSemaphore(name)){
-                            int packetID = mc.createPacket(9, "turnOnSemaphore");
-                            mc.send(packetID);//envia requisição para alterar semaforo de outros servidores
-                            //trying to make sempahore on, when it's on server will be able to write on file
-                        }
-                        booksEngine.decreaseAmount(name, amount);//efetua a escrita
-                        int newAmount = booksEngine.getAmount(name);//nova quantidade de livros
-                        this.sendMessage("true");
-                        //envia alterações (name,newAmount)
-                        //envia requisição para alterar o semaforo dos servidores
-                        booksEngine.turnOffSemaphore(name);
-                        break;
-                    }
-                    this.sendMessage("false");
+                    
+                    Boolean result = this.booksEngine.decreaseAmount(name, amount);
+                    this.sendMessage(result.toString());
                     break;
             }
         } catch (IOException | NumberFormatException ex) {

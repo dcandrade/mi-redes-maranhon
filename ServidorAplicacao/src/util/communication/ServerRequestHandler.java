@@ -5,12 +5,44 @@
  */
 package util.communication;
 
+import java.io.IOException;
+import java.util.StringTokenizer;
+import protocols.ServerProtocol;
+import util.BooksEngine;
+
 /**
  *
  * @author dcandrade
  */
 public class ServerRequestHandler {
-    public void processRequest(String request){
-        
+
+    private final BooksEngine books;
+
+    public ServerRequestHandler() throws IOException {
+        this.books = BooksEngine.getInstance();
+    }
+
+    public void processRequest(String request) throws IOException {
+        StringTokenizer token = new StringTokenizer(request, ServerProtocol.SEPARATOR);
+        int operation = Integer.parseInt(token.nextToken());
+
+        String book;
+
+        switch (operation) {
+            case ServerProtocol.TURN_ON_SEMAPHORE:
+                //compra do livroBUY_BOOK
+                book = token.nextToken();
+                this.books.turnOnSemaphore(book);
+                break;
+            case ServerProtocol.TURN_OFF_SEMAPHORE:
+                book = token.nextToken();
+                this.books.turnOffSemaphore(book);
+                break;
+            case ServerProtocol.BUY_BOOK:
+                book = token.nextToken();
+                int amount = Integer.parseInt(token.nextToken());
+                this.books.decreaseAmount(book, amount);
+                break;
+        }
     }
 }
