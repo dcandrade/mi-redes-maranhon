@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Set;
+import protocols.ServerProtocol;
 import util.communication.MulticastCentral;
 
 /**
@@ -119,11 +120,37 @@ public class BooksEngine {
 
     public synchronized boolean decreaseAmount(String name, int decreaseBy) throws IOException {
         //verificar se semafaro ta aceso, acender
+        while (!this.turnOnSemaphore(name)){}//turning sempaphore on, it'll be on looping untill semaphore's true
+        StringBuilder builder = new StringBuilder();
+        builder.append(ServerProtocol.TURN_ON_SEMAPHORE);
+        builder.append(ServerProtocol.SEPARATOR);
+        builder.append(name);
+        //send packet to change the semaphore in all servers
+        //now all semaphores are true, it's possible to write on file
+        if ((this.getAmount(name) - decreaseBy)<0){//there aren't books enough
+            this.turnOffSemaphore(name);
+            builder = new StringBuilder();
+            builder.append(ServerProtocol.TURN_OFF_SEMAPHORE);
+            builder.append(ServerProtocol.SEPARATOR);
+            builder.append(name);
+            return false; 
+        }
         this.setAmount(name, "" + (this.getAmount(name) - decreaseBy));
-        //apagar apos fazer a modificacao;
+        builder = new StringBuilder();
+        builder.append(ServerProtocol.BUY_BOOK);
+        builder.append(ServerProtocol.SEPARATOR);
+        builder.append(name);
+        builder.append(ServerProtocol.SEPARATOR);
+        builder.append(""+(this.getAmount(name)-decreaseBy));
+        //send packet to change amount in all servers, now everyone has the same copy
+        this.turnOffSemaphore(name);
+        builder = new StringBuilder();
+        builder.append(ServerProtocol.TURN_OFF_SEMAPHORE);
+        builder.append(ServerProtocol.SEPARATOR);
+        builder.append(name);
+        //now semaphores are false again, anyone is abble to write
         
-        //retornar true se foi possivel comprar, false caso contrario
-        return false;
+        return true;//file updated and book was bought
     }
 
     public synchronized int getAmount(String name) throws FileNotFoundException, IOException {
