@@ -32,7 +32,6 @@ public class BooksEngine {
         } catch (FileNotFoundException ex) {
             FileWriter arq = new FileWriter("books.data");
             arq.close();
-
         }
     }
     
@@ -57,8 +56,8 @@ public class BooksEngine {
              LinkedList<Book> books = new LinkedList();
              while (iterator.hasNext()){
                  String name = iterator.next();
-                 String amount = getAmount(name);
-                 String value = getValue(name);
+                 int amount = getAmount(name);
+                 double value = Double.parseDouble(getValue(name));
                  Book newBook = new Book(name,amount,value);
                  books.add(newBook);
              }
@@ -66,11 +65,15 @@ public class BooksEngine {
 
     }
     
-    public synchronized String getAmount(String name) throws FileNotFoundException, IOException{
+    public synchronized void decreaseAmount(String name, int decreaseBy) throws IOException{
+        this.setAmount(name, ""+(this.getAmount(name)-decreaseBy));
+    }
+    
+    public synchronized int getAmount(String name) throws FileNotFoundException, IOException{
         FileReader fr = new FileReader(name+".data");
         BufferedReader reader = new BufferedReader(fr);
         String line=reader.readLine();
-        return line.substring(0,line.indexOf("/"));
+        return Integer.parseInt(line.substring(0,line.indexOf("/")));
     }   
     
     public synchronized void setAmount(String name, String amount) throws FileNotFoundException, IOException{

@@ -4,31 +4,45 @@
  * and open the template in the editor.
  */
 package model;
+
+import java.util.StringTokenizer;
+
 /**
  *
  * @author Kayo
  */
 public class Book {
-    private final String name;
-    private final String amount;
-    private final String value;
-    
-    public Book (String name, String amount, String value){
+      private final String name;
+    private final int amount;
+    private final double value;
+
+    public Book(String name, int amount, double value) {
         this.name = name;
         this.amount = amount;
         this.value = value;
     }
-    
-    public String getName(){
+
+    public String getName() {
         return this.name;
     }
-    
-    public String getAmount(){
+
+    public int getAmount() {
         return this.amount;
     }
-    
-    public String getValue(){
+
+    public Double getValue() {
         return this.value;
     }
+   
+    
+    public String serialize(String separator){
+        return this.name + separator + this.amount + separator + this.value + separator;
+    }
+    
+    @Override
+    public String toString() {
+        return "Livro: "+this.name+", quantidade: "+this.amount + ", preço: "+this.value;
+    }
+    
     
 }

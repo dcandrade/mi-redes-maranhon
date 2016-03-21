@@ -12,4 +12,6 @@ package protocols;
 public class ClientProtocol {
     public static final int PORT = 54321;
     public static final String SEPARATOR = "-";
+    public static final int SHOWMETHEBOOKS = 2;
+    public static final int GIVEMETHEBOOKS = 3;
 }

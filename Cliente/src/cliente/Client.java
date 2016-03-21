@@ -6,10 +6,11 @@
 package cliente;
 
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.StringTokenizer;
 import protocols.Protocol;
 
@@ -24,11 +25,11 @@ public class Client {
     DataOutputStream output;
 
     /**
-     * 
+     *
      * @return A string array. [0] = IP, [1] = Port
-     * @throws IOException 
+     * @throws IOException
      */
-    public String[] askForServer() throws IOException {
+    private String[] askForServer() throws IOException {
         System.out.println("Solicitando IP ao Redirecionador....");
         Socket socket = new Socket(Protocol.SERVER, Protocol.PORT);
 
@@ -39,7 +40,7 @@ public class Client {
         String response = in.readUTF();
         System.out.println(response);
         String[] data = response.split(Protocol.SEPARATOR);
-        System.out.println("Recebido: "+data[0]+ ":"+data[1]);
+        System.out.println("Recebido: " + data[0] + ":" + data[1]);
         return data;
     }
 
@@ -50,11 +51,63 @@ public class Client {
         System.out.println("Conectado ao servidor.");
     }
 
+    public void connect() throws IOException {
+        String[] server = this.askForServer();
+        this.connectToServer(server[0], Integer.parseInt(server[1]));
+    }
+
+    public void disconnect() throws IOException {
+        this.input.close();
+        this.output.close();
+    }
+
+    public List<Book> getBooks() throws IOException {
+        String response = this.sendRequest(Protocol.SHOWMETHEBOOKS);
+        
+        StringTokenizer tokens = new StringTokenizer(response, Protocol.SEPARATOR);
+        List<Book> books = new LinkedList<>();
+        while (tokens.hasMoreTokens()) {
+            String name = tokens.nextToken();
+            int amount = Integer.parseInt(tokens.nextToken());
+            double value = Double.parseDouble(tokens.nextToken());
+            books.add(new Book(name, amount, value));
+        }
+        
+        return books;
+    }
+    
+    public boolean buyBook(String name, int amount) throws IOException{
+        StringBuilder request = new StringBuilder();
+        request.append(Protocol.GIVEMETHEBOOKS).append(Protocol.SEPARATOR);
+        request.append(name).append(Protocol.SEPARATOR);
+        request.append(amount);
+        
+        return Boolean.parseBoolean(this.sendRequest(request.toString()));
+    }
+
+    private String sendRequest(String request) throws IOException {
+        this.output.writeUTF(request);
+        this.output.flush();
+        return this.input.readUTF();
+    }
+
+    private String sendRequest(int request) throws IOException {
+        return this.sendRequest("" + request);
+    }
+
     public static void main(String[] args) throws IOException {
         Client client = new Client();
+
+        client.connect();
+        System.out.println("Solicitando livros...");
+        List<Book> books = client.getBooks();
+        System.out.println("Livros recebidos");
+        client.disconnect();
+        System.out.println("Desconectado do servidor");
         
-        String[] data = client.askForServer();
-        client.connectToServer(data[0], Integer.parseInt(data[1]));
+        for(Book b:books){
+            System.out.println(b);
+        }
 
         while (true);
 
