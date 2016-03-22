@@ -60,7 +60,7 @@ public class ClientRoom implements Runnable {
     public void run() {
         try {
 
-            StringTokenizer token = new StringTokenizer(this.readMessage());
+            StringTokenizer token = new StringTokenizer(this.readMessage(), ClientProtocol.SEPARATOR);
 
             int operation = Integer.parseInt(token.nextToken());
             
