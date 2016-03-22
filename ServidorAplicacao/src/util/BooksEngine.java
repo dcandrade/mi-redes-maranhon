@@ -126,17 +126,18 @@ public class BooksEngine {
             int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_ON_SEMAPHORE, name);
             BooksEngine.mc.send(packet);
         }
+        System.out.println("Semaphore is On");
         //send packet to change the semaphore in all servers
         //now all semaphores are true, it's possible to write on file
         if ((this.getAmount(name) - decreaseBy) < 0) {//there aren't books enough
             if (propagate) {
-                this.turnOffSemaphore(name);
                 int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
                 BooksEngine.mc.send(packet);
+                this.turnOffSemaphore(name);
             }
+            System.out.println("There aren't books enough, semaphore is off again");
             return false;
         }
-
         this.setAmount(name, "" + (this.getAmount(name) - decreaseBy));
         int value = this.getAmount(name) - decreaseBy;
         if (propagate) {
@@ -150,6 +151,8 @@ public class BooksEngine {
             //now semaphores are false again, anyone is abble to write
             BooksEngine.mc.send(packet);
         }
+        System.out.println("Changes were propageted");
+        System.out.println("Semaphore is off");
         return true;//file updated and book was bought
     }
 

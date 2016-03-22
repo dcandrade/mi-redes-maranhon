@@ -81,7 +81,6 @@ public class Client {
         request.append(Protocol.GIVEMETHEBOOKS).append(Protocol.SEPARATOR);
         request.append(name).append(Protocol.SEPARATOR);
         request.append(amount);
-        
         return Boolean.parseBoolean(this.sendRequest(request.toString()));
     }
 
@@ -108,6 +107,12 @@ public class Client {
         for(Book b:books){
             System.out.println(b);
         }
+
+        client.connect();
+        System.out.println("Solcitando a compra de 5 HarryPorco");
+        client.buyBook("HarryPorco", 5);
+        System.out.println("Compra realizada");
+        client.disconnect();
 
         while (true);
 

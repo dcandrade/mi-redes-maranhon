@@ -31,7 +31,7 @@ public class ClientRoom implements Runnable {
     private final BooksEngine booksEngine;
     private final MulticastCentral mc;
     private final MulticastReceiver mr;
-
+   
     public ClientRoom(Socket client, int id) throws IOException {
         this.input = new DataInputStream(client.getInputStream());
         this.output = new DataOutputStream(client.getOutputStream());
@@ -63,9 +63,10 @@ public class ClientRoom implements Runnable {
             StringTokenizer token = new StringTokenizer(this.readMessage());
 
             int operation = Integer.parseInt(token.nextToken());
-
+            
             switch (operation) {
                 case ClientProtocol.SHOWMETHEBOOKS:
+                    System.out.println("Client's looking the books");
                     LinkedList<Book> books = this.booksEngine.getBooks();
                     StringBuilder builder = new StringBuilder();
 
@@ -76,6 +77,7 @@ public class ClientRoom implements Runnable {
                     this.sendMessage(builder.toString());
                     break;
                 case ClientProtocol.GIVEMETHEBOOKS:
+                    System.out.println("Client's buying a book");
                     String name = token.nextToken();
                     int amount = Integer.parseInt(token.nextToken());
                     
@@ -85,6 +87,7 @@ public class ClientRoom implements Runnable {
             }
         } catch (IOException | NumberFormatException ex) {
             System.err.println("Erro em ClientRoom \n" + ex);
+            ex.printStackTrace();
         }
     }
 
