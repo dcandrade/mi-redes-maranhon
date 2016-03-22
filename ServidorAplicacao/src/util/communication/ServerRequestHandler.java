@@ -42,7 +42,7 @@ public class ServerRequestHandler {
                 book = token.nextToken();
                 int amount = Integer.parseInt(token.nextToken());
                 System.err.println("Compra de Livro " + book+":"+amount);
-                this.books.decreaseAmount(book, amount, false);
+                this.books.setAmount(book, ""+(this.books.getAmount(book)-amount));
                 break;
         }
     }

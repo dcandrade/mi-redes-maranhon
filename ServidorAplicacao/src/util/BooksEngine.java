@@ -118,11 +118,12 @@ public class BooksEngine {
         }
     }
 
-    @SuppressWarnings("empty-statement")
     public synchronized boolean decreaseAmount(String name, int decreaseBy, boolean propagate) throws IOException {
         //verificar se semafaro ta aceso, acender
+        System.err.println("NOME: "+name + ", D: "+decreaseBy);
+        while (!this.turnOnSemaphore(name));
         if (propagate) {
-            while (!this.turnOnSemaphore(name));//turning sempaphore on, it'll be on looping untill semaphore's true
+            //turning sempaphore on, it'll be on looping untill semaphore's true
             int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_ON_SEMAPHORE, name);
             BooksEngine.mc.send(packet);
         }
@@ -139,18 +140,19 @@ public class BooksEngine {
             return false;
         }
         this.setAmount(name, "" + (this.getAmount(name) - decreaseBy));
-        int value = this.getAmount(name) - decreaseBy;
+      //  int value = this.getAmount(name) - decreaseBy;
         if (propagate) {
-            int packet = BooksEngine.mc.createPacket(ServerProtocol.BUY_BOOK, name + ServerProtocol.SEPARATOR + value);
+            int packet = BooksEngine.mc.createPacket(ServerProtocol.BUY_BOOK, name + ServerProtocol.SEPARATOR + decreaseBy);
             BooksEngine.mc.send(packet);
 
             //send packet to change amount in all servers, now everyone has the same copy
-            this.turnOffSemaphore(name);
             packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
 
             //now semaphores are false again, anyone is abble to write
             BooksEngine.mc.send(packet);
         }
+        this.turnOffSemaphore(name);
+            
         System.out.println("Changes were propageted");
         System.out.println("Semaphore is off");
         return true;//file updated and book was bought
