@@ -38,7 +38,7 @@ public class BooksEngine {
         BooksEngine.mc = mc;
         return BooksEngine.instance;
     }
-    
+
     public static BooksEngine getInstance() throws IOException {
         if (BooksEngine.instance == null) {
             BooksEngine.instance = new BooksEngine();
@@ -118,38 +118,38 @@ public class BooksEngine {
         }
     }
 
-    public synchronized boolean decreaseAmount(String name, int decreaseBy) throws IOException {
+    @SuppressWarnings("empty-statement")
+    public synchronized boolean decreaseAmount(String name, int decreaseBy, boolean propagate) throws IOException {
         //verificar se semafaro ta aceso, acender
-        while (!this.turnOnSemaphore(name)){}//turning sempaphore on, it'll be on looping untill semaphore's true
-        StringBuilder builder = new StringBuilder();
-        builder.append(ServerProtocol.TURN_ON_SEMAPHORE);
-        builder.append(ServerProtocol.SEPARATOR);
-        builder.append(name);
+        if (propagate) {
+            while (!this.turnOnSemaphore(name));//turning sempaphore on, it'll be on looping untill semaphore's true
+            int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_ON_SEMAPHORE, name);
+            BooksEngine.mc.send(packet);
+        }
         //send packet to change the semaphore in all servers
         //now all semaphores are true, it's possible to write on file
-        if ((this.getAmount(name) - decreaseBy)<0){//there aren't books enough
-            this.turnOffSemaphore(name);
-            builder = new StringBuilder();
-            builder.append(ServerProtocol.TURN_OFF_SEMAPHORE);
-            builder.append(ServerProtocol.SEPARATOR);
-            builder.append(name);
-            return false; 
+        if ((this.getAmount(name) - decreaseBy) < 0) {//there aren't books enough
+            if (propagate) {
+                this.turnOffSemaphore(name);
+                int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
+                BooksEngine.mc.send(packet);
+            }
+            return false;
         }
+
         this.setAmount(name, "" + (this.getAmount(name) - decreaseBy));
-        builder = new StringBuilder();
-        builder.append(ServerProtocol.BUY_BOOK);
-        builder.append(ServerProtocol.SEPARATOR);
-        builder.append(name);
-        builder.append(ServerProtocol.SEPARATOR);
-        builder.append(""+(this.getAmount(name)-decreaseBy));
-        //send packet to change amount in all servers, now everyone has the same copy
-        this.turnOffSemaphore(name);
-        builder = new StringBuilder();
-        builder.append(ServerProtocol.TURN_OFF_SEMAPHORE);
-        builder.append(ServerProtocol.SEPARATOR);
-        builder.append(name);
-        //now semaphores are false again, anyone is abble to write
-        
+        int value = this.getAmount(name) - decreaseBy;
+        if (propagate) {
+            int packet = BooksEngine.mc.createPacket(ServerProtocol.BUY_BOOK, name + ServerProtocol.SEPARATOR + value);
+            BooksEngine.mc.send(packet);
+
+            //send packet to change amount in all servers, now everyone has the same copy
+            this.turnOffSemaphore(name);
+            packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
+
+            //now semaphores are false again, anyone is abble to write
+            BooksEngine.mc.send(packet);
+        }
         return true;//file updated and book was bought
     }
 

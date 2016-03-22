@@ -79,7 +79,7 @@ public class ClientRoom implements Runnable {
                     String name = token.nextToken();
                     int amount = Integer.parseInt(token.nextToken());
                     
-                    Boolean result = this.booksEngine.decreaseAmount(name, amount);
+                    Boolean result = this.booksEngine.decreaseAmount(name, amount, true);
                     this.sendMessage(result.toString());
                     break;
             }
