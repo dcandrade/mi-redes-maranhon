@@ -11,7 +11,7 @@ package protocols;
  */
 public class CentralizerProtocol {
     public static final String BEAT = "IMALIVE";
-    public static final String IP = "localhost";
+    public static final String IP = "169.254.65.24";
     public static final int PORT = 12345;
     public final static int IM_A_SERVER = 2;
 }

@@ -41,6 +41,7 @@ public class ServerRequestHandler {
             case ServerProtocol.BUY_BOOK:
                 book = token.nextToken();
                 int amount = Integer.parseInt(token.nextToken());
+                System.err.println("Compra de Livro " + book+":"+amount);
                 this.books.decreaseAmount(book, amount, false);
                 break;
         }

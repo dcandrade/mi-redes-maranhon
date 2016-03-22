@@ -105,6 +105,7 @@ public class MulticastCentral {
     }
 
     private void send(String packet) throws SocketException, IOException {
+        System.err.println("Enviando pacote: "+packet);
         DatagramSocket socket = new DatagramSocket();
         byte[] buffer = packet.getBytes();
         DatagramPacket dpacket = new DatagramPacket(buffer, buffer.length, this.address, MulticastCentral.PORT);
