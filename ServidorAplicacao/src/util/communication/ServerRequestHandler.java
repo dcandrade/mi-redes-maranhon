@@ -18,8 +18,8 @@ public class ServerRequestHandler {
 
     private final BooksEngine books;
 
-    public ServerRequestHandler() throws IOException {
-        this.books = BooksEngine.getInstance();
+    public ServerRequestHandler(BooksEngine books) throws IOException {
+        this.books = books;
     }
 
     public void processRequest(String request) throws IOException {
@@ -41,7 +41,6 @@ public class ServerRequestHandler {
             case ServerProtocol.BUY_BOOK:
                 book = token.nextToken();
                 int amount = Integer.parseInt(token.nextToken());
-                System.err.println("Compra de Livro " + book+":"+amount);
                 this.books.setAmount(book, ""+(this.books.getAmount(book)-amount));
                 break;
         }
