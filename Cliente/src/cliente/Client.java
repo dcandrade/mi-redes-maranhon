@@ -20,7 +20,6 @@ import protocols.Protocol;
  * @author Daniel Andrade
  */
 public class Client {
-    private boolean hasAServer;
     DataInputStream input;
     DataOutputStream output;
 
@@ -40,13 +39,10 @@ public class Client {
         String response = in.readUTF();
         System.out.println(response);
         String[] data = response.split(Protocol.SEPARATOR);
-        hasAServer = in.readBoolean();
         System.out.println("Recebido: " + data[0] + ":" + data[1]);
         return data;
     }
-    public boolean getHasAServer(){
-        return hasAServer;
-    }
+   
     public void connectToServer(String ip, int port) throws IOException {
         Socket socket = new Socket(ip, port);
         this.input = new DataInputStream(socket.getInputStream());

@@ -42,9 +42,6 @@ public class Centralizer {
             switch (kindOfClient) {
                 case ClientProtocol.IM_A_CLIENT:
                     System.out.println("Novo cliente:  " + client.getInetAddress().getHostAddress());
-                    if(controller.amountOfServers()!=0){
-                    output.writeBoolean(true);
-                    System.out.println("true");
                     IPTuple applicationServer = controller.getProximoServidor();
                     StringBuilder packet = new StringBuilder();
                     //packet.append(ClientProtocol.IP_SERVIDOR); //Operation
@@ -53,12 +50,6 @@ public class Centralizer {
                     packet.append(ClientProtocol.SEPARADOR);
                     packet.append(applicationServer.getPort()); //Server's Port
                     output.writeUTF(packet.toString());//Sends the address to the new client.
-                    }
-                    else{
-                        output.writeBoolean(false);
-                        System.out.println("false");
-
-                    }
                     client.close(); //Closes the conection
                     break;
                 case ServerProtocol.ITS_A_SERVER:

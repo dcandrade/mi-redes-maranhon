@@ -9,8 +9,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
-import model.Book;
 import model.listeners.ClientListener;
 import protocols.CentralizerProtocol;
 import util.BooksEngine;
@@ -42,20 +40,6 @@ public class ApplicationServer {
     }
 
     public void connectAsServer() throws IOException {
-        Client client = new Client();
-        client.askForServer();
-        List<Book> book = null;
-        System.out.println("Aqui "+client.getHasAServer());
-        if(client.getHasAServer()){
-        
-            client.connect();
-
-        System.out.println("Solicitando livros...");
-        book = client.getBooks();
-        client.disconnect();
-
-        }
-        
         Socket socket = new Socket(CentralizerProtocol.IP, CentralizerProtocol.PORT);
         this.input = new DataInputStream(socket.getInputStream());
         this.output = new DataOutputStream(socket.getOutputStream());
@@ -63,15 +47,6 @@ public class ApplicationServer {
         output.writeUTF(CentralizerProtocol.IM_A_SERVER);
         this.port = input.readInt();
         this.id = input.readInt();
-        if(client.getHasAServer()){
-        for(int i = 0 ; i< book.size();i++){
-            Book a  = book.get(i);
-            System.out.println(a.getName()+a.getAmount()+a.getValue());
-
-            books.newBook(a.getName(), Integer.toString(a.getAmount()), Double.toString(a.getValue()));
-        }
-        System.out.println("[Server]Books were recieved");
-        }
         this.setUpConnection();
     }
 
