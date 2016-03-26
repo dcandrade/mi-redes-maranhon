@@ -6,7 +6,9 @@
 package util.communication;
 
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.StringTokenizer;
+import model.Book;
 import protocols.ServerProtocol;
 import util.BooksEngine;
 
@@ -42,6 +44,18 @@ public class ServerRequestHandler {
                 int amount = Integer.parseInt(token.nextToken());
                 this.books.setAmount(book, ""+(this.books.getAmount(book)-amount));
                 break;
+            case ServerProtocol.NEW_SERVER:
+                //send books and log to a new server
+                LinkedList<Book> bks = books.getBooks();
+                book = "";
+                for (int i = 0; i<bks.size(); i++){
+                    Book nb = bks.get(i);
+                    book = nb.getName()+"/"+Integer.toString(nb.getAmount())+"/"+Double.toString(nb.getValue())+"-";
+                    
+                }
+                //send book
+            case ServerProtocol.RECEIVING_BOOKS:
+                //pegar cada "-", quebrar a string formada em / e chamar book.newBook(dado1,dado2,dado3)
         }
     }
 }

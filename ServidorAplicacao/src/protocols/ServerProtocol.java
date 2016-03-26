@@ -23,6 +23,8 @@ public class ServerProtocol {
     public final static String TURN_OFF_SEMAPHORE = "Turn it off, i'm done";// NOME DO LIVRO
     public final static String BUY_BOOK = "Buy book"; //NOME LIVRO + QUANTIDADE
     public final static String RECEIVED = "I have it";
+    public final static String NEW_SERVER = "New Server";
+    public final static String RECEIVING_BOOKS = "Receiving Books";
     public final static String MULTICAST_ADDRESS = "239.0.0.0";
     public final static int PORT = 12345;
     public final static String SEPARATOR = "-";

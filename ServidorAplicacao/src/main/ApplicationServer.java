@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.Socket;
 import model.listeners.ClientListener;
 import protocols.CentralizerProtocol;
+import protocols.ServerProtocol;
 import util.BooksEngine;
 import util.communication.MulticastCentral;
 import util.communication.MulticastReceiver;
@@ -37,6 +38,8 @@ public class ApplicationServer {
         this.mr = new MulticastReceiver(this.mc);
         this.mr.start();
         this.books.setMulticastCentral(this.mc);
+        int createPacket = mc.createPacket(ServerProtocol.NEW_SERVER, null);
+        mc.send(createPacket);
     }
 
     public void connectAsServer() throws IOException {
@@ -48,6 +51,7 @@ public class ApplicationServer {
         this.port = input.readInt();
         this.id = input.readInt();
         this.setUpConnection();
+        
     }
 
     public void listenClients(int id, int port) throws IOException {
