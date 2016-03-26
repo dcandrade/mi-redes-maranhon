@@ -38,6 +38,7 @@ public class ApplicationServer {
         this.mr = new MulticastReceiver(this.mc);
         this.mr.start();
         this.books.setMulticastCentral(this.mc);
+        handler.setMulticastCentral(mc);
         int createPacket = mc.createPacket(ServerProtocol.NEW_SERVER, null);
         mc.send(createPacket);
     }

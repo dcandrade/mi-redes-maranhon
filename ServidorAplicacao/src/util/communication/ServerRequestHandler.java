@@ -19,9 +19,12 @@ import util.BooksEngine;
 public class ServerRequestHandler {
 
     private final BooksEngine books;
-
+    private MulticastCentral mc=null;
     public ServerRequestHandler(BooksEngine books) throws IOException {
         this.books = books;
+    }
+    public void setMulticastCentral(MulticastCentral mc){
+        this.mc=mc;
     }
 
     public void processRequest(String request) throws IOException {
@@ -45,16 +48,27 @@ public class ServerRequestHandler {
                 this.books.setAmount(book, ""+(this.books.getAmount(book)-amount));
                 break;
             case ServerProtocol.NEW_SERVER:
-                //send books and log to a new server
+                System.out.println("[SERVER] New server on, requesting data");
                 LinkedList<Book> bks = books.getBooks();
                 book = "";
                 for (int i = 0; i<bks.size(); i++){
                     Book nb = bks.get(i);
-                    book = nb.getName()+"/"+Integer.toString(nb.getAmount())+"/"+Double.toString(nb.getValue())+"-";
-                    
+                    book=nb.serialize("-")+"-";
                 }
-                //send book
+                int packet=mc.createPacket(ServerProtocol.RECEIVING_BOOKS, book);
+                mc.send(packet);
+                //criar pacote de log
+                
+                break;
             case ServerProtocol.RECEIVING_BOOKS:
+                System.out.println("[SERVER] New server on, receiveing books");
+                while(token.hasMoreElements()){
+                String name=token.nextToken();
+                String na = token.nextToken();
+                String value = token.nextToken();
+                books.newBook(name, na, value);
+                }
+                break;
                 //pegar cada "-", quebrar a string formada em / e chamar book.newBook(dado1,dado2,dado3)
         }
     }
