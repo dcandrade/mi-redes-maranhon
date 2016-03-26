@@ -17,6 +17,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 import protocols.ServerProtocol;
 import util.communication.MulticastCentral;
 
@@ -27,38 +28,26 @@ import util.communication.MulticastCentral;
 public class BooksEngine {
 
     private final Properties players;
-    private static final LinkedList<Boolean> semaphore = new LinkedList();
-    private static BooksEngine instance;
-    private static MulticastCentral mc;
+    private final TreeMap<String, Boolean> semaphore = new TreeMap<>();
+    private MulticastCentral mc;
 
-    public static BooksEngine getInstance(MulticastCentral mc) throws IOException {
-        if (BooksEngine.instance == null) {
-            BooksEngine.instance = new BooksEngine();
-        }
-        BooksEngine.mc = mc;
-        return BooksEngine.instance;
-    }
-
-    public static BooksEngine getInstance() throws IOException {
-        if (BooksEngine.instance == null) {
-            BooksEngine.instance = new BooksEngine();
-        }
-        return BooksEngine.instance;
-    }
-
-    private BooksEngine() throws IOException {
+    public BooksEngine() throws IOException {
         this.players = new Properties();
         try {
             this.players.load(new FileInputStream("books.data"));
-            Iterator it = this.players.stringPropertyNames().iterator();
+            Iterator<String> it = this.players.stringPropertyNames().iterator();
             while (it.hasNext()) {
-                semaphore.add(Boolean.FALSE);
-                it.next();
+                String name = it.next();
+                this.semaphore.put(name, Boolean.FALSE);
             }
         } catch (FileNotFoundException ex) {
             FileWriter arq = new FileWriter("books.data");
             arq.close();
         }
+    }
+
+    public void setMulticastCentral(MulticastCentral mc) {
+        this.mc = mc;
     }
 
     //Register a new player
@@ -69,7 +58,7 @@ public class BooksEngine {
             FileWriter file = new FileWriter(name + ".data");
             file.write(amount + "/" + value);
             file.close();
-            semaphore.add(Boolean.FALSE);
+            semaphore.put(name, Boolean.FALSE);
             return true; //Sucessfully registered
         }
 
@@ -82,7 +71,7 @@ public class BooksEngine {
         LinkedList<Book> books = new LinkedList();
         while (iterator.hasNext()) {
             String name = iterator.next();
-            int amount = getAmount(name);
+            int amount = getAmount(name, true);
             double value = Double.parseDouble(getValue(name));
             Book newBook = new Book(name, amount, value);
             books.add(newBook);
@@ -92,77 +81,91 @@ public class BooksEngine {
     }
 
     public synchronized boolean turnOnSemaphore(String name) throws IOException {
-        LinkedList<Book> books = getBooks();
-        for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getName().equals(name)) {
-                if (!semaphore.get(i)) {
-                    semaphore.set(i, Boolean.TRUE);
-                    SemaphoreTimeout sto = new SemaphoreTimeout(semaphore.get(i));
-                    new Thread(sto).start();//making sure semaphore will be turned off
-                    return true;
-                }
-            }
+        Boolean get = this.semaphore.get(name);
+
+        if (get != null && !get) {
+            this.semaphore.put(name, Boolean.TRUE);
+
+            SemaphoreTimeout sto = new SemaphoreTimeout(this.semaphore.get(name));
+            new Thread(sto).start();//making sure semaphore will be turned off
+            return true;
         }
+
         return false;
     }
 
-    public synchronized void turnOffSemaphore(String name) throws IOException {
-        LinkedList<Book> books = getBooks();
-        for (int i = 0; i < books.size(); i++) {
-            if (books.get(i).getName().equals(name)) {
-                if (semaphore.get(i)) {
-                    semaphore.set(i, Boolean.FALSE);
-                    break;
-                }
-            }
+    public synchronized boolean turnOffSemaphore(String name) throws IOException {
+        Boolean get = this.semaphore.get(name);
+
+        if (get != null && get) {
+            this.semaphore.put(name, Boolean.FALSE);
+            return true;
         }
+
+        return false;
     }
 
+    private boolean getSemaphoreStatus(String name) {
+        Boolean status = this.semaphore.get(name);
+
+        return status == null ? false : status;
+    }
+
+    @SuppressWarnings("empty-statement")
     public synchronized boolean decreaseAmount(String name, int decreaseBy, boolean propagate) throws IOException {
         //verificar se semafaro ta aceso, acender
-        System.err.println("NOME: "+name + ", D: "+decreaseBy);
         while (!this.turnOnSemaphore(name));
         if (propagate) {
             //turning sempaphore on, it'll be on looping untill semaphore's true
-            int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_ON_SEMAPHORE, name);
-            BooksEngine.mc.send(packet);
+            int packet = this.mc.createPacket(ServerProtocol.TURN_ON_SEMAPHORE, name);
+            this.mc.send(packet);
         }
-        System.out.println("Semaphore is On");
+        System.out.println("[BOOKS] " + name + "'s Semaphore is On");
         //send packet to change the semaphore in all servers
         //now all semaphores are true, it's possible to write on file
-        if ((this.getAmount(name) - decreaseBy) < 0) {//there aren't books enough
+        if ((this.getAmount(name, true) - decreaseBy) < 0) {//there aren't books enough
             if (propagate) {
-                int packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
-                BooksEngine.mc.send(packet);
+                int packet = this.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
+                this.mc.send(packet);
                 this.turnOffSemaphore(name);
             }
-            System.out.println("There aren't books enough, semaphore is off again");
+            System.out.println("[BOOKS] There aren't books enough, semaphore is off again");
             return false;
         }
-        this.setAmount(name, "" + (this.getAmount(name) - decreaseBy));
-      //  int value = this.getAmount(name) - decreaseBy;
+        this.setAmount(name, "" + (this.getAmount(name, true) - decreaseBy));
+        //  int value = this.getAmount(name) - decreaseBy;
         if (propagate) {
-            int packet = BooksEngine.mc.createPacket(ServerProtocol.BUY_BOOK, name + ServerProtocol.SEPARATOR + decreaseBy);
-            BooksEngine.mc.send(packet);
+            int packet = this.mc.createPacket(ServerProtocol.BUY_BOOK, name + ServerProtocol.SEPARATOR + decreaseBy);
+            this.mc.send(packet);
 
             //send packet to change amount in all servers, now everyone has the same copy
-            packet = BooksEngine.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
+            packet = this.mc.createPacket(ServerProtocol.TURN_OFF_SEMAPHORE, name);
 
             //now semaphores are false again, anyone is abble to write
-            BooksEngine.mc.send(packet);
+            this.mc.send(packet);
         }
         this.turnOffSemaphore(name);
-            
-        System.out.println("Changes were propageted");
-        System.out.println("Semaphore is off");
+
+        System.out.println("[BOOKS]Changes were propageted");
+        System.out.println("[BOOKS]" + name + "'s semaphore is now off");
         return true;//file updated and book was bought
     }
 
-    public synchronized int getAmount(String name) throws FileNotFoundException, IOException {
+    @SuppressWarnings("empty-statement")
+    private synchronized int getAmount(String name, boolean inside) throws FileNotFoundException, IOException {
+   
+        
         FileReader fr = new FileReader(name + ".data");
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
+        
+
+        
         return Integer.parseInt(line.substring(0, line.indexOf("/")));
+    }
+
+    public synchronized int getAmount(String name) throws IOException {
+        return this.getAmount(name, false);
     }
 
     public synchronized void setAmount(String name, String amount) throws FileNotFoundException, IOException {
