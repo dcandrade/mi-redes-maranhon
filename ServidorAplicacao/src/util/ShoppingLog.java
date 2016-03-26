@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.Properties;
 import java.util.SortedSet;
 import java.util.TreeSet;

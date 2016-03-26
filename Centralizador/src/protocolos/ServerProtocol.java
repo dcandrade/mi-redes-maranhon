@@ -12,5 +12,5 @@ package protocolos;
 public class ServerProtocol {
     public static final int BEAT = 400;
     public final static int PORT = 12345;
-    public final static int ITS_A_SERVER = 2;
+    public final static String ITS_A_SERVER = "Hey, i'm a server";
 }

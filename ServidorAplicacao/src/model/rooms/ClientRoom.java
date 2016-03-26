@@ -3,17 +3,12 @@ package model.rooms;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.LinkedList;
 import java.util.StringTokenizer;
-import java.util.logging.Handler;
 import model.Book;
 import protocols.ClientProtocol;
 import util.BooksEngine;
-import util.communication.MulticastCentral;
-import util.communication.MulticastReceiver;
-import util.communication.ServerRequestHandler;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -58,7 +53,7 @@ public class ClientRoom implements Runnable {
 
             StringTokenizer token = new StringTokenizer(this.readMessage(), ClientProtocol.SEPARATOR);
 
-            int operation = Integer.parseInt(token.nextToken());
+            String operation = token.nextToken();
             
             switch (operation) {
                 case ClientProtocol.SHOWMETHEBOOKS:

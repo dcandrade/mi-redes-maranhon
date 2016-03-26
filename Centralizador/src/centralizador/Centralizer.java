@@ -37,28 +37,39 @@ public class Centralizer {
             DataOutputStream output = new DataOutputStream(client.getOutputStream());
             DataInputStream input = new DataInputStream(client.getInputStream());
 
-            int kindOfClient = input.readInt();
+            String kindOfClient = input.readUTF();
 
-            if (kindOfClient == ClientProtocol.IM_A_CLIENT) {
-                System.out.println("Novo cliente:  " + client.getInetAddress().getHostAddress());
-                IPTuple applicationServer = controller.getProximoServidor();
-                StringBuilder packet = new StringBuilder();
-                //packet.append(ClientProtocol.IP_SERVIDOR); //Operation
-                //packet.append(ClientProtocol.SEPARADOR);
-                packet.append(applicationServer.getIP()); //Server's IP
-                packet.append(ClientProtocol.SEPARADOR);
-                packet.append(applicationServer.getPort()); //Server's Port
+            switch (kindOfClient) {
+                case ClientProtocol.IM_A_CLIENT:
+                    System.out.println("Novo cliente:  " + client.getInetAddress().getHostAddress());
+                    if(controller.amountOfServers()!=0){
+                    output.writeBoolean(true);
+                    System.out.println("true");
+                    IPTuple applicationServer = controller.getProximoServidor();
+                    StringBuilder packet = new StringBuilder();
+                    //packet.append(ClientProtocol.IP_SERVIDOR); //Operation
+                    //packet.append(ClientProtocol.SEPARADOR);
+                    packet.append(applicationServer.getIP()); //Server's IP
+                    packet.append(ClientProtocol.SEPARADOR);
+                    packet.append(applicationServer.getPort()); //Server's Port
+                    output.writeUTF(packet.toString());//Sends the address to the new client.
+                    }
+                    else{
+                        output.writeBoolean(false);
+                        System.out.println("false");
 
-                output.writeUTF(packet.toString());//Sends the address to the new client.
-                client.close(); //Closes the conection
-            } else if(kindOfClient == ServerProtocol.ITS_A_SERVER) {
-                int port = Centralizer.PORT++;
-                System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress() + " : " + port);
-                output.writeInt(port);
-                output.writeInt(ServerID++);
-                String ip = client.getInetAddress().getHostAddress();
-                controller.addServer(ip, port, input, output);
-                System.out.println("Total de Servidores: " + controller.amountOfServers());
+                    }
+                    client.close(); //Closes the conection
+                    break;
+                case ServerProtocol.ITS_A_SERVER:
+                    int port = Centralizer.PORT++;
+                    System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress() + " : " + port);
+                    output.writeInt(port);
+                    output.writeInt(ServerID++);
+                    String ip = client.getInetAddress().getHostAddress();
+                    controller.addServer(ip, port, input, output);
+                    System.out.println("Total de Servidores: " + controller.amountOfServers());
+                    break;
             }
         }
     }

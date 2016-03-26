@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package cliente;
+package main;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import model.Book;
 import protocols.Protocol;
 
 /**
@@ -20,7 +21,7 @@ import protocols.Protocol;
  * @author Daniel Andrade
  */
 public class Client {
-    private boolean hasAServer;
+    private boolean hasAServer=false;
     DataInputStream input;
     DataOutputStream output;
 
@@ -29,7 +30,7 @@ public class Client {
      * @return A string array. [0] = IP, [1] = Port
      * @throws IOException
      */
-    private String[] askForServer() throws IOException {
+    public String[] askForServer() throws IOException {
         System.out.println("Solicitando IP ao Redirecionador....");
         Socket socket = new Socket(Protocol.SERVER, Protocol.PORT);
 
@@ -37,12 +38,15 @@ public class Client {
         DataInputStream in = new DataInputStream(socket.getInputStream());
 
         out.writeUTF(Protocol.IM_A_CLIENT);
+        hasAServer = in.readBoolean();
+        if(hasAServer){
         String response = in.readUTF();
         System.out.println(response);
         String[] data = response.split(Protocol.SEPARATOR);
-        hasAServer = in.readBoolean();
         System.out.println("Recebido: " + data[0] + ":" + data[1]);
         return data;
+        }
+        return null;
     }
     public boolean getHasAServer(){
         return hasAServer;

@@ -40,13 +40,13 @@ public class MulticastCentral {
         this.debug = debug;
     }
 
-    public int createPacket(int protocolID, String message) {
+    public int createPacket(String operation, String message) {
 
         StringBuilder packet = new StringBuilder();
         packet.append(ServerProtocol.SERVER_STUFF).append(ServerProtocol.SEPARATOR);
         packet.append(this.id).append(ServerProtocol.SEPARATOR);
         packet.append(MulticastCentral.packetNumber).append(ServerProtocol.SEPARATOR);
-        packet.append(protocolID).append(ServerProtocol.SEPARATOR);
+        packet.append(operation).append(ServerProtocol.SEPARATOR);
         packet.append(message);
 
         this.packets.put(MulticastCentral.packetNumber, packet.toString());
@@ -57,7 +57,7 @@ public class MulticastCentral {
             System.out.println("-Type: " + ServerProtocol.SERVER_STUFF);
             System.out.println("-Sender ID: " + this.id);
             System.out.println("-Packet Number: " + MulticastCentral.packetNumber);
-            System.out.println("-Message Type: " + protocolID);
+            System.out.println("-Message Type: " + operation);
             System.out.println("-Message: " + message);
             System.out.println("::::::::::::::::::\n");
         }
@@ -128,7 +128,7 @@ public class MulticastCentral {
 
         StringTokenizer tokenizer = new StringTokenizer(packet, ServerProtocol.SEPARATOR);
 
-        int operation = Integer.parseInt(tokenizer.nextToken());
+        String operation = tokenizer.nextToken();
         int sender = Integer.parseInt(tokenizer.nextToken());
         int packetID = Integer.parseInt(tokenizer.nextToken());
 
@@ -147,59 +147,56 @@ public class MulticastCentral {
             return;
         }
 
-        if (operation == ServerProtocol.MULTICAST_STUFF) {
-            int protocol = Integer.parseInt(tokenizer.nextToken());
-
-            if (debug) {
-                System.out.print("[COMMUNICATION] MULTICAST OPERATION: ");
-                System.out.println("Type: " + protocol);
-            }
-
-            if (protocol == ServerProtocol.CONFIRMATION && MulticastCentral.RELIABLE) {
+        switch (operation) {
+            case ServerProtocol.MULTICAST_STUFF:
+                String protocol = tokenizer.nextToken();
                 if (debug) {
-                    System.out.println("[COMMUNICATION] Packet " + packetID + " confimed."
-                            + " SENDING RECONFIRMATION...");
+                    System.out.print("[COMMUNICATION] MULTICAST OPERATION: ");
+                    System.out.println("Type: " + protocol);
                 }
+                if (protocol.equals(ServerProtocol.CONFIRMATION) && MulticastCentral.RELIABLE) {
+                    if (debug) {
+                        System.out.println("[COMMUNICATION] Packet " + packetID + " confimed."
+                                + " SENDING RECONFIRMATION...");
+                    }
 
-                this.markPacketAsReceived(packetID);
-                this.sendReconfirmation(packetID, this.id);
+                    this.markPacketAsReceived(packetID);
+                    this.sendReconfirmation(packetID, this.id);
 
-            } else if (protocol == ServerProtocol.RECONFIRMATION && MulticastCentral.RELIABLE) {
-                System.out.println("[COMMUNICATION] Transaction of packet " + packetID
-                        + " was sucessfully completed.");
-                this.endPacketTransaction(packetID, sender);
-            }
-
-        } else if (operation == ServerProtocol.SERVER_STUFF) {
-            //Só processa pacotes que não foram processados antes
-            if (cache.get(sender) == null) {
-                this.cache.put(sender, new TreeMap<Integer, String>());
-            }
-            if (cache.get(sender).get(packetID) != null) {
-                System.out.println("[COMMUNICATION] PACKET " + packet + " ALREADY PROCESSED.");
-                this.sendConfirmation(packetID, sender);
-                return;
-            } else {
-                this.cache.get(sender).put(packetID, packet);
-            }
-
-            if (debug) {
-                System.out.print("[COMMUNICATION] APPLICATION OPERATION");
-            }
-            if (MulticastCentral.RELIABLE) {
-                System.out.print(", sending confirmation...");
-                this.markPacketAsReceived(packetID);
-                this.sendConfirmation(packetID, this.id);
-                this.waitReconfirmation(id);
-            }
-            System.out.print("\n");
-
-            StringBuilder request = new StringBuilder();
-            while (tokenizer.hasMoreTokens()) {
-                request.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
-            }
-
-            this.handler.processRequest(request.toString());
+                } else if (protocol.equals(ServerProtocol.RECONFIRMATION) && MulticastCentral.RELIABLE) {
+                    System.out.println("[COMMUNICATION] Transaction of packet " + packetID
+                            + " was sucessfully completed.");
+                    this.endPacketTransaction(packetID, sender);
+                }
+                break;
+            case ServerProtocol.SERVER_STUFF:
+                //Só processa pacotes que não foram processados antes
+                if (cache.get(sender) == null) {
+                    this.cache.put(sender, new TreeMap<Integer, String>());
+                }
+                if (cache.get(sender).get(packetID) != null) {
+                    System.out.println("[COMMUNICATION] PACKET " + packet + " ALREADY PROCESSED.");
+                    this.sendConfirmation(packetID, sender);
+                    return;
+                } else {
+                    this.cache.get(sender).put(packetID, packet);
+                }
+                if (debug) {
+                    System.out.print("[COMMUNICATION] APPLICATION OPERATION");
+                }
+                if (MulticastCentral.RELIABLE) {
+                    System.out.print(", sending confirmation...");
+                    this.markPacketAsReceived(packetID);
+                    this.sendConfirmation(packetID, this.id);
+                    this.waitReconfirmation(id);
+                }
+                System.out.print("\n");
+                StringBuilder request = new StringBuilder();
+                while (tokenizer.hasMoreTokens()) {
+                    request.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
+                }
+                this.handler.processRequest(request.toString());
+                break;
         }
     }
 

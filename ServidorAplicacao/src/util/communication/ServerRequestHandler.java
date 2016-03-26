@@ -24,8 +24,7 @@ public class ServerRequestHandler {
 
     public void processRequest(String request) throws IOException {
         StringTokenizer token = new StringTokenizer(request, ServerProtocol.SEPARATOR);
-        int operation = Integer.parseInt(token.nextToken());
-
+        String operation = token.nextToken();
         String book;
 
         switch (operation) {

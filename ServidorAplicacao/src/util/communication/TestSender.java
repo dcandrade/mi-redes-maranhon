@@ -18,7 +18,7 @@ public class TestSender {
         MulticastCentral mc = new MulticastCentral(5,null,true);
         MulticastReceiver mr = new MulticastReceiver(mc);
         mr.start();
-        int packetID = mc.createPacket(9, "test packet");
+        int packetID = mc.createPacket("9", "test packet");
         mc.send(packetID);
     }
 }

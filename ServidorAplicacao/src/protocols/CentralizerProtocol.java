@@ -13,5 +13,5 @@ public class CentralizerProtocol {
     public static final String BEAT = "IMALIVE";
     public static final String IP = "localhost";
     public static final int PORT = 12345;
-    public final static int IM_A_SERVER = 2;
+    public final static String IM_A_SERVER = "Hey, i'm a server";
 }
