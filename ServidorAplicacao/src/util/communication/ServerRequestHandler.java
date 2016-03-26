@@ -53,8 +53,11 @@ public class ServerRequestHandler {
                 book = "";
                 for (int i = 0; i<bks.size(); i++){
                     Book nb = bks.get(i);
-                    book=nb.serialize("-")+"-";
+                    book=book+nb.serialize("-")+"-";
+                    System.out.println("Book: "+book);
                 }
+                System.out.println("Book: "+book);
+
                 int packet=mc.createPacket(ServerProtocol.RECEIVING_BOOKS, book);
                 mc.send(packet);
                 //criar pacote de log
@@ -66,6 +69,7 @@ public class ServerRequestHandler {
                 String name=token.nextToken();
                 String na = token.nextToken();
                 String value = token.nextToken();
+                System.out.println("name"+name + "value"+value+"amount"+na);
                 books.newBook(name, na, value);
                 }
                 break;
