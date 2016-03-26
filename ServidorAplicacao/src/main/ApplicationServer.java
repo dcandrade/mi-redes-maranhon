@@ -51,7 +51,7 @@ public class ApplicationServer {
         this.port = input.readInt();
         this.id = input.readInt();
         this.setUpConnection();
-        
+
     }
 
     public void listenClients(int id, int port) throws IOException {
@@ -72,8 +72,8 @@ public class ApplicationServer {
     public static void main(String[] args) throws IOException {
         ApplicationServer app = new ApplicationServer();
         app.connectAsServer();
-        System.out.println("Iniciando servidor " + app.getId() + " em " + app.getPort());
         app.listenClients(app.getId(), app.getPort());
-        System.out.println("Servidor iniciado.");
+        System.out.println("Iniciado servidor " + app.getId() + " em " + app.getPort());
+
     }
 }

@@ -9,6 +9,7 @@ import java.util.StringTokenizer;
 import model.Book;
 import protocols.ClientProtocol;
 import util.BooksEngine;
+import util.LoginEngine;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -24,12 +25,14 @@ public class ClientRoom implements Runnable {
     private final DataInputStream input;
     private final DataOutputStream output;
     private final BooksEngine booksEngine;
+    private final LoginEngine login;
 
    
     public ClientRoom(Socket client, int id, BooksEngine books) throws IOException {
         this.input = new DataInputStream(client.getInputStream());
         this.output = new DataOutputStream(client.getOutputStream());
         this.booksEngine = books;
+        this.login = new LoginEngine();
     }
 
     private void sendMessage(int protocol, String message) throws IOException {
@@ -52,8 +55,20 @@ public class ClientRoom implements Runnable {
         try {
 
             StringTokenizer token = new StringTokenizer(this.readMessage(), ClientProtocol.SEPARATOR);
-
+            String user = token.nextToken();
+            String password = token.nextToken();
             String operation = token.nextToken();
+            
+            if(operation.equals(ClientProtocol.REGISTER)){
+                boolean signUp = this.login.signUp(user, password);
+                this.sendMessage(String.valueOf(signUp));
+                return;
+            }else{
+                if(!this.login.signIn(user, password)){
+                    this.sendMessage(ClientProtocol.LOGIN_FAILED);
+                    return;
+                }
+            }
             
             switch (operation) {
                 case ClientProtocol.SHOWMETHEBOOKS:

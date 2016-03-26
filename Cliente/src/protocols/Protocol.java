@@ -12,7 +12,10 @@ package protocols;
 public class Protocol {
 
     public static final String IM_A_CLIENT = "Hey, i'm client";
+    public static final String LOGIN = "Login";
+     public static final String REGISTER = "Signup";
     public static final String SEPARATOR = "-";
+    public static final String LOGIN_FAILED = "login failed";
     public static final int PORT = 12345;
     public static final String SERVER = "localhost";
     public static final int IP_SERVIDOR = 1;

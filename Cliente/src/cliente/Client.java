@@ -12,6 +12,7 @@ import java.net.Socket;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.StringTokenizer;
+import javax.security.auth.login.LoginException;
 import protocols.Protocol;
 
 /**
@@ -20,8 +21,15 @@ import protocols.Protocol;
  * @author Daniel Andrade
  */
 public class Client {
-    DataInputStream input;
-    DataOutputStream output;
+    private DataInputStream input;
+    private DataOutputStream output;
+    private final String username;
+    private final String password;
+
+    public Client(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
 
     /**
      *
@@ -43,11 +51,18 @@ public class Client {
         return data;
     }
    
-    public void connectToServer(String ip, int port) throws IOException {
+    private void connectToServer(String ip, int port) throws IOException {
         Socket socket = new Socket(ip, port);
         this.input = new DataInputStream(socket.getInputStream());
         this.output = new DataOutputStream(socket.getOutputStream());
         System.out.println("Conectado ao servidor.");
+    }
+    
+    public boolean register() throws IOException, LoginException{
+        String request = Protocol.REGISTER + Protocol.SEPARATOR + this.password;
+        String response = this.sendRequest(request);
+        
+        return Boolean.parseBoolean(response);
     }
 
     public void connect() throws IOException {
@@ -60,7 +75,7 @@ public class Client {
         this.output.close();
     }
 
-    public List<Book> getBooks() throws IOException {
+    public List<Book> getBooks() throws IOException, LoginException {
         String response = this.sendRequest(Protocol.SHOWMETHEBOOKS);
         
         StringTokenizer tokens = new StringTokenizer(response, Protocol.SEPARATOR);
@@ -75,7 +90,7 @@ public class Client {
         return books;
     }
     
-    public boolean buyBook(String name, int amount) throws IOException{
+    public boolean buyBook(String name, int amount) throws IOException, LoginException{
         StringBuilder request = new StringBuilder();
         request.append(Protocol.GIVEMETHEBOOKS).append(Protocol.SEPARATOR);
         request.append(name).append(Protocol.SEPARATOR);
@@ -83,18 +98,22 @@ public class Client {
         return Boolean.parseBoolean(this.sendRequest(request.toString()));
     }
 
-    private String sendRequest(String request) throws IOException {
-        this.output.writeUTF(request);
+    private String sendRequest(String request) throws IOException, LoginException {
+        String realRequest = this.username + Protocol.SEPARATOR + 
+                this.password + Protocol.SEPARATOR  +  request;
+        this.output.writeUTF(realRequest);
         this.output.flush();
-        return this.input.readUTF();
+        String response = this.input.readUTF();
+        if(response.equals(Protocol.LOGIN_FAILED)){
+            throw new LoginException();
+        }
+        
+        return response;
     }
 
-    private String sendRequest(int request) throws IOException {
-        return this.sendRequest("" + request);
-    }
 
-    public static void main(String[] args) throws IOException {
-        Client client = new Client();
+    public static void main(String[] args) throws IOException, LoginException {
+        Client client = new Client("abcde","abcde");
 
         client.connect();
         System.out.println("Solicitando livros...");
