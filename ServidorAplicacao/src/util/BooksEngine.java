@@ -27,15 +27,15 @@ import util.communication.MulticastCentral;
  */
 public class BooksEngine {
 
-    private final Properties players;
+    private final Properties books;
     private final TreeMap<String, Boolean> semaphore = new TreeMap<>();
     private MulticastCentral mc;
 
     public BooksEngine() throws IOException {
-        this.players = new Properties();
+        this.books = new Properties();
         try {
-            this.players.load(new FileInputStream("books.data"));
-            Iterator<String> it = this.players.stringPropertyNames().iterator();
+            this.books.load(new FileInputStream("books.data"));
+            Iterator<String> it = this.books.stringPropertyNames().iterator();
             while (it.hasNext()) {
                 String name = it.next();
                 this.semaphore.put(name, Boolean.FALSE);
@@ -52,9 +52,9 @@ public class BooksEngine {
 
     //Register a new player
     public synchronized boolean newBook(String name, String amount, String value) throws FileNotFoundException, IOException {
-        if (this.players.getProperty(name) == null) {
-            this.players.setProperty(name, "");//name=amount/value            
-            this.players.store(new FileOutputStream("books.data"), "");
+        if (this.books.getProperty(name) == null) {
+            this.books.setProperty(name, "");//name=amount/value            
+            this.books.store(new FileOutputStream("books.data"), "");
             FileWriter file = new FileWriter(name + ".data");
             file.write(amount + "/" + value);
             file.close();
@@ -66,7 +66,7 @@ public class BooksEngine {
     }
 
     public synchronized LinkedList<Book> getBooks() throws IOException {
-        Set<String> a = this.players.stringPropertyNames();
+        Set<String> a = this.books.stringPropertyNames();
         Iterator<String> iterator = a.iterator();
         LinkedList<Book> books = new LinkedList();
         while (iterator.hasNext()) {
