@@ -14,7 +14,6 @@ import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import protocols.ServerProtocol;
-import util.BooksEngine;
 
 /**
  *
@@ -30,27 +29,19 @@ public class MulticastCentral {
     private final TreeMap<Integer, TreeMap<Integer, String>> cache;
     private final ServerRequestHandler handler;
     private final boolean debug;
+    public static final boolean RELIABLE = false;
 
-    public MulticastCentral(int id, boolean debug) throws UnknownHostException, IOException {
+    public MulticastCentral(int id, ServerRequestHandler handler, boolean debug) throws UnknownHostException, IOException {
         this.address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);
         this.id = id;
         this.packets = new TreeMap<>();
         this.cache = new TreeMap<>();
-        this.handler = new ServerRequestHandler();
+        this.handler = handler;
         this.debug = debug;
     }
 
     public int createPacket(int protocolID, String message) {
-        if (debug) {
-            System.err.println("::Creating packet::");
-            System.err.println("Properties:");
-            System.err.println("Type: " + ServerProtocol.SERVER_STUFF);
-            System.err.println("Sender ID: " + this.id);
-            System.err.println("Packet Number: " + MulticastCentral.packetNumber);
-            System.err.println("Application Protocol: " + protocolID);
-            System.err.println("Message: " + message);
-            System.err.println(":::");
-        }
+
         StringBuilder packet = new StringBuilder();
         packet.append(ServerProtocol.SERVER_STUFF).append(ServerProtocol.SEPARATOR);
         packet.append(this.id).append(ServerProtocol.SEPARATOR);
@@ -59,9 +50,18 @@ public class MulticastCentral {
         packet.append(message);
 
         this.packets.put(MulticastCentral.packetNumber, packet.toString());
+
         if (debug) {
-            System.out.println("Packet created: " + packet.toString());
+            System.out.println("::[COMMUNICATION] PACKET CREATED::");
+            System.out.println("-Properties:");
+            System.out.println("-Type: " + ServerProtocol.SERVER_STUFF);
+            System.out.println("-Sender ID: " + this.id);
+            System.out.println("-Packet Number: " + MulticastCentral.packetNumber);
+            System.out.println("-Message Type: " + protocolID);
+            System.out.println("-Message: " + message);
+            System.out.println("::::::::::::::::::\n");
         }
+
         return MulticastCentral.packetNumber++;
     }
 
@@ -105,7 +105,6 @@ public class MulticastCentral {
     }
 
     private void send(String packet) throws SocketException, IOException {
-        System.err.println("Enviando pacote: "+packet);
         DatagramSocket socket = new DatagramSocket();
         byte[] buffer = packet.getBytes();
         DatagramPacket dpacket = new DatagramPacket(buffer, buffer.length, this.address, MulticastCentral.PORT);
@@ -115,57 +114,59 @@ public class MulticastCentral {
 
     public void send(int id) throws IOException {
         if (debug) {
-            System.out.println("Sending packet n" + id);
+            System.out.println("[COMMUNICATION] Sending packet " + id);
         }
 
         this.send(this.packets.get(id));
-        this.watchPacket(id);
+
+        if (MulticastCentral.RELIABLE) {
+            this.watchPacket(id);
+        }
     }
 
     public void processPacket(String packet) throws IOException {
-        if (debug) {
-            System.err.print("Recebido: " + packet);
-        }
+
         StringTokenizer tokenizer = new StringTokenizer(packet, ServerProtocol.SEPARATOR);
 
         int operation = Integer.parseInt(tokenizer.nextToken());
         int sender = Integer.parseInt(tokenizer.nextToken());
         int packetID = Integer.parseInt(tokenizer.nextToken());
 
-        if (sender == this.id) {
-            if (debug) {
-                System.err.println(" ->Pacote descartado");
-            }
-            return;
+        if (debug) {
+            System.out.println("\n::[COMMUNICATION] PACKET: " + packet + " RECEIVED::");
+            System.out.println("-Message Type: " + operation);
+            System.out.println("-Sender: " + sender);
+            System.out.println("-Packet ID: " + packetID);
+            System.out.println(":::::::\n");
         }
 
-        if (debug) {
-            System.err.print("\nTipo: " + operation + ", ");
-            System.err.print("Remetente: " + sender + ", ");
-            System.err.println("ID do Pacote: " + packetID);
-
+        if (sender == this.id) {
+            if (debug) {
+                System.out.println("[COMMUNICATION] packet " + packetID + " discarded");
+            }
+            return;
         }
 
         if (operation == ServerProtocol.MULTICAST_STUFF) {
             int protocol = Integer.parseInt(tokenizer.nextToken());
 
             if (debug) {
-                System.err.print("Operacao de Multicast: ");
-                System.err.println("Nº de Protocolo: " + protocol);
+                System.out.print("[COMMUNICATION] MULTICAST OPERATION: ");
+                System.out.println("Type: " + protocol);
             }
 
-            if (protocol == ServerProtocol.CONFIRMATION) {
+            if (protocol == ServerProtocol.CONFIRMATION && MulticastCentral.RELIABLE) {
                 if (debug) {
-                    System.out.println("Pacote " + packetID + " confirmado."
-                            + " Enviando reconfirmação");
+                    System.out.println("[COMMUNICATION] Packet " + packetID + " confimed."
+                            + " SENDING RECONFIRMATION...");
                 }
 
                 this.markPacketAsReceived(packetID);
                 this.sendReconfirmation(packetID, this.id);
 
-            } else if (protocol == ServerProtocol.RECONFIRMATION) {
-                System.err.println("Transação do pacote " + packetID
-                        + " concluída com sucesso");
+            } else if (protocol == ServerProtocol.RECONFIRMATION && MulticastCentral.RELIABLE) {
+                System.out.println("[COMMUNICATION] Transaction of packet " + packetID
+                        + " was sucessfully completed.");
                 this.endPacketTransaction(packetID, sender);
             }
 
@@ -175,8 +176,7 @@ public class MulticastCentral {
                 this.cache.put(sender, new TreeMap<Integer, String>());
             }
             if (cache.get(sender).get(packetID) != null) {
-                System.err.println(cache.get(sender).get(packetID));
-                System.err.println("Pacote já foi processado");
+                System.out.println("[COMMUNICATION] PACKET " + packet + " ALREADY PROCESSED.");
                 this.sendConfirmation(packetID, sender);
                 return;
             } else {
@@ -184,26 +184,28 @@ public class MulticastCentral {
             }
 
             if (debug) {
-                System.err.println("Operação de Servidor, enviando confirmação.");
+                System.out.print("[COMMUNICATION] APPLICATION OPERATION");
             }
+            if (MulticastCentral.RELIABLE) {
+                System.out.print(", sending confirmation...");
+                this.markPacketAsReceived(packetID);
+                this.sendConfirmation(packetID, this.id);
+                this.waitReconfirmation(id);
+            }
+            System.out.print("\n");
 
-            this.markPacketAsReceived(packetID);
-            this.sendConfirmation(packetID, this.id);
-            this.waitReconfirmation(id);
-            
-            
             StringBuilder request = new StringBuilder();
             while (tokenizer.hasMoreTokens()) {
                 request.append(tokenizer.nextToken()).append(ServerProtocol.SEPARATOR);
             }
-            
+
             this.handler.processRequest(request.toString());
         }
     }
 
     private void waitReconfirmation(int packetID) {
         if (debug) {
-            System.err.println("Waiting reconfirmation...");
+            System.out.println("[COMMUNICATION] Waiting reconfirmation of packet " + packetID + "...");
         }
         PacketWatcher watcher = new PacketWatcher(packetID, this.id, this);
         watcher.watch();
