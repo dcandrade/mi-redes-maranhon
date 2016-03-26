@@ -24,7 +24,6 @@ import protocols.ClientProtocol;
 public class ShoppingLog {
     private static final String DIR = "/logs";
     private final Properties log;
-    private final char separator = '-';
     private final String client;
     
     public ShoppingLog(String client) throws IOException{
