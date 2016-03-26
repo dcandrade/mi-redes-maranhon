@@ -29,16 +29,12 @@ public class ClientRoom implements Runnable {
     private final DataInputStream input;
     private final DataOutputStream output;
     private final BooksEngine booksEngine;
-    private final MulticastCentral mc;
-    private final MulticastReceiver mr;
+
    
-    public ClientRoom(Socket client, int id) throws IOException {
+    public ClientRoom(Socket client, int id, BooksEngine books) throws IOException {
         this.input = new DataInputStream(client.getInputStream());
         this.output = new DataOutputStream(client.getOutputStream());
-        mc = new MulticastCentral(id, true);
-        mr = new MulticastReceiver(mc);
-        this.booksEngine = BooksEngine.getInstance(mc);
-        mr.start();
+        this.booksEngine = books;
     }
 
     private void sendMessage(int protocol, String message) throws IOException {
