@@ -113,7 +113,7 @@ public class Client {
 
 
     public static void main(String[] args) throws IOException, LoginException {
-        Client client = new Client("abcde","abcde");
+        Client client = new Client("Daniel","12345");
 
         client.connect();
         System.out.println("Solicitando livros...");
