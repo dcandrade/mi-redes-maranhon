@@ -114,8 +114,6 @@ public class Client {
         System.out.println("Compra realizada");
         client.disconnect();
 
-        while (true);
-
     }
 
 }

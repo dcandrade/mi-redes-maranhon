@@ -15,7 +15,7 @@ import java.net.UnknownHostException;
 public class TestSender {
 
     public static void main(String[] args) throws UnknownHostException, IOException {
-        MulticastCentral mc = new MulticastCentral(5,true);
+        MulticastCentral mc = new MulticastCentral(5,null,true);
         MulticastReceiver mr = new MulticastReceiver(mc);
         mr.start();
         int packetID = mc.createPacket(9, "test packet");
