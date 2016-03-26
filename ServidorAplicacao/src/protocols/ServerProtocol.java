@@ -25,7 +25,7 @@ public class ServerProtocol {
     public final static String RECEIVED = "I have it";
     public final static String NEW_SERVER = "New Server";
     public final static String RECEIVING_BOOKS = "Receiving Books";
-    public final static String MULTICAST_ADDRESS = "239.0.0.0";
+    public final static String MULTICAST_ADDRESS = "192.168.25.0";
     public final static int PORT = 12345;
     public final static String SEPARATOR = "-";
 }
