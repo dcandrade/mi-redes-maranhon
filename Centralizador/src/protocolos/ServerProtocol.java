@@ -13,4 +13,6 @@ public class ServerProtocol {
     public static final int BEAT = 400;
     public final static int PORT = 12345;
     public final static String ITS_A_SERVER = "Hey, i'm a server";
+    public final static String START_SERVER = "start";
+    public static String SEPARATOR = "_";
 }

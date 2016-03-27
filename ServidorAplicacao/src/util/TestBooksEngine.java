@@ -17,8 +17,8 @@ public class TestBooksEngine {
     
     public static void main(String[] args) throws IOException{
         BooksEngine be = new BooksEngine();
-        be.newBook("HarryPorco", "50", "150,00");
-        be.newBook("HarryPorco 2", "30", "250,00");
+        be.newBook("HarryPorco", "50", "150.00");
+        be.newBook("HarryPorco 2", "30", "250.00");
         LinkedList<Book> a = be.getBooks();
         for (int i = 0 ; i < a.size() ; i++){
             System.out.print("Book: "+a.get(i).getName());
@@ -34,8 +34,8 @@ public class TestBooksEngine {
             System.out.print(" Amount: "+a.get(i).getAmount());
             System.out.println(" Value: "+a.get(i).getValue());
         }
-        be.setValue("HarryPorco", "200,00");
-        be.setValue("HarryPorco 2", "80,00");
+        be.setValue("HarryPorco", "200.00");
+        be.setValue("HarryPorco 2", "80.00");
         System.out.println("Values have changed");
         a = be.getBooks();
         for (int i = 0 ; i < a.size() ; i++){

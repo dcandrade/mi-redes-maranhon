@@ -12,10 +12,11 @@ package protocols;
 public class ClientProtocol {
 
     public static final int PORT = 54321;
-    public static final String SEPARATOR = "-";
+    public static final String SEPARATOR = "_";
     public static final String SHOWMETHEBOOKS = "What books do you have?";
     public static final String GIVEMETHEBOOKS = "I wanna buy some books";
     public static final String LOGIN = "Login";
     public static final String REGISTER = "Signup";
     public static final String LOGIN_FAILED = "login failed";
+     public static final String LAST_PURCHASE = "last purchase";
 }

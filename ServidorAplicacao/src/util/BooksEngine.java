@@ -7,6 +7,7 @@ package util;
 
 import model.Book;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -33,15 +34,18 @@ public class BooksEngine {
 
     public BooksEngine() throws IOException {
         this.books = new Properties();
+        File file= new File("files/books");
+        file.mkdirs();
+        
         try {
-            this.books.load(new FileInputStream("books.data"));
+            this.books.load(new FileInputStream("files/books.data"));
             Iterator<String> it = this.books.stringPropertyNames().iterator();
             while (it.hasNext()) {
                 String name = it.next();
                 this.semaphore.put(name, Boolean.FALSE);
             }
         } catch (FileNotFoundException ex) {
-            FileWriter arq = new FileWriter("books.data");
+            FileWriter arq = new FileWriter("files/books.data");
             arq.close();
         }
     }
@@ -52,28 +56,28 @@ public class BooksEngine {
 
     //Register a new player
     public synchronized boolean newBook(String name, String amount, String value) throws FileNotFoundException, IOException {
-        if (this.books.getProperty(name) == null) {
-            this.books.setProperty(name, "");//name=amount/value            
-            this.books.store(new FileOutputStream("books.data"), "");
-            FileWriter file = new FileWriter(name + ".data");
-            file.write(amount + "/" + value);
-            file.close();
-            semaphore.put(name, Boolean.FALSE);
-            return true; //Sucessfully registered
-        }
-
-        return false; //Player name already exists
+        this.books.setProperty(name, "");//name=amount/value   
+        this.books.store(new FileOutputStream("files/books.data"), "");
+        
+        FileWriter file = new FileWriter("files/books/"+name + ".data");
+        file.write(amount + "/" + value);
+        file.close();
+        
+        semaphore.put(name, Boolean.FALSE);
+        
+        return true; //Sucessfully registered
     }
 
     public synchronized LinkedList<Book> getBooks() throws IOException {
         Set<String> a = this.books.stringPropertyNames();
         Iterator<String> iterator = a.iterator();
         LinkedList<Book> books = new LinkedList();
+        
         while (iterator.hasNext()) {
             String name = iterator.next();
             int amount = getAmount(name, true);
             double value = Double.parseDouble(getValue(name));
-            Book newBook = new Book(name, amount, value);
+            Book newBook = new Book(name.replace('|', ' '), amount, value);
             books.add(newBook);
         }
         return books;
@@ -105,11 +109,6 @@ public class BooksEngine {
         return false;
     }
 
-    private boolean getSemaphoreStatus(String name) {
-        Boolean status = this.semaphore.get(name);
-
-        return status == null ? false : status;
-    }
 
     @SuppressWarnings("empty-statement")
     public synchronized boolean decreaseAmount(String name, int decreaseBy, boolean propagate) throws IOException {
@@ -153,14 +152,11 @@ public class BooksEngine {
 
     @SuppressWarnings("empty-statement")
     private synchronized int getAmount(String name, boolean inside) throws FileNotFoundException, IOException {
-   
-        
-        FileReader fr = new FileReader(name + ".data");
+
+        FileReader fr = new FileReader("files/books/"+name + ".data");
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
-        
 
-        
         return Integer.parseInt(line.substring(0, line.indexOf("/")));
     }
 
@@ -169,34 +165,35 @@ public class BooksEngine {
     }
 
     public synchronized void setAmount(String name, String amount) throws FileNotFoundException, IOException {
-        FileReader fr = new FileReader(name + ".data");
+        FileReader fr = new FileReader("files/books/"+name + ".data");
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
         String newLine;
         newLine = amount.concat(line.substring(line.indexOf("/"), line.length()));
         fr.close();
-        FileWriter fw = new FileWriter(name + ".data");
+        FileWriter fw = new FileWriter("files/books/"+name + ".data");
         fw.write(newLine);
         fw.close();
     }
 
     public synchronized String getValue(String name) throws FileNotFoundException, IOException {
-        FileReader fr = new FileReader(name + ".data");
+        FileReader fr = new FileReader("files/books/"+name + ".data");
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
         return line.substring(line.indexOf("/") + 1, line.length());
     }
 
     public synchronized void setValue(String name, String value) throws FileNotFoundException, IOException {
-        FileReader fr = new FileReader(name + ".data");
+        FileReader fr = new FileReader("files/books/"+name + ".data");
         BufferedReader reader = new BufferedReader(fr);
         String line = reader.readLine();
         String newLine;
         newLine = line.substring(0, line.indexOf("/") + 1) + value;
         fr.close();
-        FileWriter fw = new FileWriter(name + ".data");
+        FileWriter fw = new FileWriter("files/books/"+name + ".data");
         fw.write(newLine);
         fw.close();
     }
+    
 
 }

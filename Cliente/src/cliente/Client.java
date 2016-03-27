@@ -5,6 +5,7 @@
  */
 package cliente;
 
+import exceptions.NoLastPurchaseException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,6 +22,7 @@ import protocols.Protocol;
  * @author Daniel Andrade
  */
 public class Client {
+
     private DataInputStream input;
     private DataOutputStream output;
     private final String username;
@@ -50,33 +52,39 @@ public class Client {
         System.out.println("Recebido: " + data[0] + ":" + data[1]);
         return data;
     }
-   
+
     private void connectToServer(String ip, int port) throws IOException {
         Socket socket = new Socket(ip, port);
         this.input = new DataInputStream(socket.getInputStream());
         this.output = new DataOutputStream(socket.getOutputStream());
         System.out.println("Conectado ao servidor.");
     }
-    
-    public boolean register() throws IOException, LoginException{
+
+    public boolean register() throws IOException, LoginException {
+        this.connect();
+
         String request = Protocol.REGISTER + Protocol.SEPARATOR + this.password;
         String response = this.sendRequest(request);
-        
+
+        this.disconnect();
+
         return Boolean.parseBoolean(response);
     }
 
-    public void connect() throws IOException {
+    private void connect() throws IOException {
         String[] server = this.askForServer();
         this.connectToServer(server[0], Integer.parseInt(server[1]));
     }
 
-    public void disconnect() throws IOException {
+    private void disconnect() throws IOException {
         this.input.close();
         this.output.close();
     }
 
     public List<Book> getBooks() throws IOException, LoginException {
+        this.connect();
         String response = this.sendRequest(Protocol.SHOWMETHEBOOKS);
+        this.disconnect();
         
         StringTokenizer tokens = new StringTokenizer(response, Protocol.SEPARATOR);
         List<Book> books = new LinkedList<>();
@@ -86,51 +94,66 @@ public class Client {
             double value = Double.parseDouble(tokens.nextToken());
             books.add(new Book(name, amount, value));
         }
-        
+
         return books;
     }
-    
-    public boolean buyBook(String name, int amount) throws IOException, LoginException{
+
+    public boolean buyBook(String name, int amount) throws IOException, LoginException {
+        name = name.replace(' ', '|');
         StringBuilder request = new StringBuilder();
         request.append(Protocol.GIVEMETHEBOOKS).append(Protocol.SEPARATOR);
         request.append(name).append(Protocol.SEPARATOR);
         request.append(amount);
-        return Boolean.parseBoolean(this.sendRequest(request.toString()));
+        
+        this.connect();
+        boolean result =  Boolean.parseBoolean(this.sendRequest(request.toString()));
+        this.disconnect();
+        
+        return result;
+    }
+
+    public Purchase getLastPurchase() throws IOException, LoginException, NoLastPurchaseException {
+        this.connect();
+        String purchase = this.sendRequest(Protocol.LAST_PURCHASE);
+        this.disconnect();
+        if(purchase.equals("false")){
+            throw new NoLastPurchaseException();
+        }
+        return Purchase.unserialize(purchase);
     }
 
     private String sendRequest(String request) throws IOException, LoginException {
-        String realRequest = this.username + Protocol.SEPARATOR + 
-                this.password + Protocol.SEPARATOR  +  request;
+        String realRequest = this.username + Protocol.SEPARATOR
+                + this.password + Protocol.SEPARATOR + request;
         this.output.writeUTF(realRequest);
         this.output.flush();
+
         String response = this.input.readUTF();
-        if(response.equals(Protocol.LOGIN_FAILED)){
+        if (response.equals(Protocol.LOGIN_FAILED)) {
             throw new LoginException();
         }
-        
+
         return response;
     }
 
+    public static void main(String[] args) throws IOException, LoginException, NoLastPurchaseException {
+        Client client = new Client("Daniel", "12345");
 
-    public static void main(String[] args) throws IOException, LoginException {
-        Client client = new Client("Daniel","12345");
 
-        client.connect();
         System.out.println("Solicitando livros...");
         List<Book> books = client.getBooks();
         System.out.println("Livros recebidos");
-        client.disconnect();
         System.out.println("Desconectado do servidor");
-        
-        for(Book b:books){
+
+        for (Book b : books) {
             System.out.println(b);
         }
 
-        client.connect();
         System.out.println("Solcitando a compra de 5 HarryPorco");
-        client.buyBook("HarryPorco", 5);
+        System.out.println("Resultado da compra: "+client.buyBook("Livro - O Livro das Criaturas de Harry Potter", 10));
         System.out.println("Compra realizada");
-        client.disconnect();
+        System.out.println("\n");
+        System.out.println(client.getLastPurchase());
 
     }
 

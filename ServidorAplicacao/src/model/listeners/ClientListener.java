@@ -10,6 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import model.rooms.ClientRoom;
 import util.BooksEngine;
+import util.LoginEngine;
+import util.ShoppingLog;
 
 /**
  *
@@ -19,11 +21,15 @@ public class ClientListener implements Runnable{
         private final ServerSocket server;
         private final int serverID;
         private final BooksEngine books;
+        private final LoginEngine login;
+        private final ShoppingLog log;
 
-    public ClientListener(int serverID, int port, BooksEngine books) throws IOException {
+    public ClientListener(int serverID, int port, BooksEngine books, ShoppingLog log, LoginEngine login) throws IOException {
         this.server = new ServerSocket(port);
         this.serverID=serverID;
         this.books = books;
+        this.login = login;
+        this.log = log;
     }
             
     @Override
@@ -34,7 +40,7 @@ public class ClientListener implements Runnable{
             try {
                 Socket client = this.server.accept();
                 System.out.println("Cliente " + client.getInetAddress().getHostAddress() + "se conectou.");
-                room = new ClientRoom(client, this.serverID, this.books);
+                room = new ClientRoom(client, this.serverID, this.books, this.log, this.login);
                 thread = new Thread(room);
                 thread.start();
             } catch (IOException ex) {

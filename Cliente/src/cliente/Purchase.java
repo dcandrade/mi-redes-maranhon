@@ -3,10 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package model;
+package cliente;
 
 import java.util.StringTokenizer;
-import protocols.ClientProtocol;
+import protocols.Protocol;
 
 /**
  *
@@ -25,7 +25,7 @@ public class Purchase {
     }
 
     private Purchase(String logEntry) {
-        StringTokenizer tokens = new StringTokenizer(logEntry, ClientProtocol.SEPARATOR);
+        StringTokenizer tokens = new StringTokenizer(logEntry, Protocol.SEPARATOR);
         
         this.book = tokens.nextToken();
         this.amount = Integer.parseInt(tokens.nextToken());
@@ -46,18 +46,11 @@ public class Purchase {
 
     @Override
     public String toString() {
-        return this.serialize();
+        return "Livro: " + this.book + ", Quantidade: "+this.amount + ", Valor total: R$"+this.value;
     }
     
-
-    public String serialize() {
-        return ClientProtocol.SEPARATOR + this.book + ClientProtocol.SEPARATOR + this.amount
-                + ClientProtocol.SEPARATOR + this.value + ClientProtocol.SEPARATOR;
-
-    }
-    
-    public static Purchase unserialize(String purchase){
-        return new Purchase(purchase);
+    public static Purchase unserialize(String serializedPurchase){
+        return new Purchase(serializedPurchase);
     }
 
 }

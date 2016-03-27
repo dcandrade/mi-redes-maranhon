@@ -7,18 +7,17 @@ package util;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
+import java.util.Map;
 import java.util.Properties;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.Set;
 import model.Purchase;
 import protocols.ClientProtocol;
+import protocols.ServerProtocol;
+import util.communication.MulticastCentral;
 
 /**
  *
@@ -26,63 +25,59 @@ import protocols.ClientProtocol;
  */
 public class ShoppingLog {
 
-    private static final String DIR = "/logs";
     private final Properties log;
-    private final String client;
-    private final String clientFile;
+    private final File file;
+    private MulticastCentral mc;
 
-    public ShoppingLog(String client) throws IOException {
-        this.client = client;
-        this.clientFile = ShoppingLog.DIR + "/" + client + ".sLog";
-
-        File dir = new File(ShoppingLog.DIR);
-        dir.mkdir();
-
+    public ShoppingLog() throws FileNotFoundException, IOException {
         this.log = new Properties();
-        this.log.load(new FileInputStream(this.clientFile));
+        File file= new File("files/books");
+        file.mkdirs();
+        this.file = new File("files/ShoppingLog.data");
+
+        try {
+            this.log.load(new FileInputStream(this.file));
+        } catch (FileNotFoundException ex) {
+            FileWriter fw = new FileWriter(this.file);
+            fw.close();
+            this.log.load(new FileInputStream(this.file));
+        }
     }
 
-    public void addPurchase(String book, int amount, double total) throws IOException {
-        String value = book + ClientProtocol.SEPARATOR
-                + amount + ClientProtocol.SEPARATOR + total;
-        String key = String.valueOf(System.currentTimeMillis());
-
-        this.log.put(key, value);
-        this.store();
+    public void setMulticastCentral(MulticastCentral mc) {
+        this.mc = mc;
     }
 
-    public List<Purchase> getRecentPurchases(int amount) {
-        Enumeration<?> propertyNames = this.log.propertyNames();
+    public void erase() {
+        this.file.delete();
+    }
 
-        Comparator<Long> reverse = new Comparator<Long>() {
-            @Override
-            public int compare(Long o1, Long o2) {
-                return o2.compareTo(o1);
-            }
+    public void addPurchase(String client, Purchase purchase, boolean propagate) throws IOException {
+        this.log.put(client, purchase.serialize());
+        this.log.store(new FileOutputStream(this.file), "");
 
-        };
+        if (propagate) {
+            int packet = this.mc.createPacket(ServerProtocol.NEW_PURCHASE, client + purchase.serialize());
+            this.mc.send(packet);
+        }
+    }
 
-        SortedSet<Long> set = new TreeSet<>(reverse);
+    public String serialize() {
+        Set<Map.Entry<Object, Object>> entries = this.log.entrySet();
 
-        while (propertyNames.hasMoreElements()) {
-            set.add(Long.parseLong(propertyNames.nextElement().toString()));
+        StringBuilder result = new StringBuilder();
+        for (Map.Entry<Object, Object> entry : entries) {
+            result.append(entry.getKey().toString()).append(ClientProtocol.SEPARATOR);
+            result.append(entry.getValue().toString()).append(ClientProtocol.SEPARATOR);
         }
 
-        Iterator<Long> it = set.iterator();
-
-        List<Purchase> result = new ArrayList<>();
-        
-        for(int i = 0; i<amount || it.hasNext(); i++){
-            String logEntry = this.log.getProperty(String.valueOf(it.next()));
-            
-            result.add(new Purchase(logEntry));
-        }
-        
-        return result;
+        return result.toString();
     }
 
-    private void store() throws IOException {
-        this.log.store(new FileOutputStream(client), "");
+    public Purchase getLastPurchase(String client) {
+        String last = this.log.getProperty(client);
+        
+        return last == null? null : Purchase.unserialize(last);
     }
 
 }

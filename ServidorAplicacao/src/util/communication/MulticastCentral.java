@@ -29,7 +29,7 @@ public class MulticastCentral {
     private final TreeMap<Integer, TreeMap<Integer, String>> cache;
     private final ServerRequestHandler handler;
     private final boolean debug;
-    public static final boolean RELIABLE = false;
+    public static final boolean RELIABLE = true;
 
     public MulticastCentral(int id, ServerRequestHandler handler, boolean debug) throws UnknownHostException, IOException {
         this.address = InetAddress.getByName(ServerProtocol.MULTICAST_ADDRESS);

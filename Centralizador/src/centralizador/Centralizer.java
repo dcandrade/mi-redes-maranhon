@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import model.Controller;
+import model.ServerRoom;
 import protocolos.ClientProtocol;
 import protocolos.ServerProtocol;
 import util.IPTuple;
@@ -33,12 +34,14 @@ public class Centralizer {
 
         while (true) {
             // aceita um cliente
+            
             Socket client = server.accept();
             DataOutputStream output = new DataOutputStream(client.getOutputStream());
             DataInputStream input = new DataInputStream(client.getInputStream());
 
             String kindOfClient = input.readUTF();
 
+            int port;
             switch (kindOfClient) {
                 case ClientProtocol.IM_A_CLIENT:
                     System.out.println("Novo cliente:  " + client.getInetAddress().getHostAddress());
@@ -53,13 +56,14 @@ public class Centralizer {
                     client.close(); //Closes the conection
                     break;
                 case ServerProtocol.ITS_A_SERVER:
-                    int port = Centralizer.PORT++;
-                    System.out.println("Servidor conectado: " +client.getInetAddress().getHostAddress() + " : " + port);
+                    port = Centralizer.PORT++;
+                    System.out.println("Servidor se preparando: " + client.getInetAddress().getHostAddress() + " : " + port);
                     output.writeInt(port);
                     output.writeInt(ServerID++);
-                    String ip = client.getInetAddress().getHostAddress();
-                    controller.addServer(ip, port, input, output);
-                    System.out.println("Total de Servidores: " + controller.amountOfServers());
+                    
+                    ServerRoom sr = new ServerRoom(controller, input, output, client.getInetAddress().getHostAddress());
+                    Thread t = new Thread(sr);
+                    t.start();
                     break;
             }
         }
