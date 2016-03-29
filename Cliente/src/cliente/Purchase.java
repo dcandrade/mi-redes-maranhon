@@ -46,7 +46,7 @@ public class Purchase {
 
     @Override
     public String toString() {
-        return "Livro: " + this.book + ", Quantidade: "+this.amount + ", Valor total: R$"+this.value;
+        return "Book: " + this.book + "\nAmount: "+this.amount + "\nTotal: R$"+this.value;
     }
     
     public static Purchase unserialize(String serializedPurchase){

@@ -90,9 +90,14 @@ public class ApplicationServer {
         return port;
     }
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         ApplicationServer app = new ApplicationServer();
         app.connectAsServer();
+
+        System.out.println("Configurando...");
+       Thread.sleep(2000);
+        System.out.println("Feito.");
+        
         app.start();
         app.listenClients(app.getId(), app.getPort());
         System.out.println("Iniciado servidor " + app.getId() + " em " + app.getPort());
