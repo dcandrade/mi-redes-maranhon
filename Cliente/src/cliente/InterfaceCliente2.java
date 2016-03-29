@@ -6,6 +6,7 @@
 package cliente;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Level;
@@ -18,13 +19,16 @@ import javax.swing.DefaultListModel;
  * @author Kayo
  */
 public class InterfaceCliente2 extends javax.swing.JFrame {
+
     private Client c;
+    private List<Book> books;
+
     /**
      * Creates new form InterfaceCliente2
      */
     public InterfaceCliente2(Client c) {
         initComponents();
-        this.c=c;
+        this.c = c;
         this.setVisible(true);
         this.setLocationRelativeTo(null);
     }
@@ -155,62 +159,70 @@ public class InterfaceCliente2 extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
             // TODO add your handling code here:
-            List <Book> books = c.getBooks();
+            List<Book> books = c.getBooks();
+            int id = 0;
             DefaultListModel model = new DefaultListModel();
             jList1.setModel(model);
-            for(int i=0;i<books.size();i++){
-                model.addElement(books.get(i).toString());
+            this.books = new ArrayList<>();
+            for (Book book : books) {
+                book.setId(id);
+                this.books.add(book);
+                model.addElement(id + "-" + book.toString().replace('|', ' '));
+                id++;
             }
         } catch (IOException ex) {
             Logger.getLogger(InterfaceCliente2.class.getName()).log(Level.SEVERE, null, ex);
         } catch (LoginException ex) {
             Logger.getLogger(InterfaceCliente2.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
     }//GEN-LAST:event_jButton1ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
         // TODO add your handling code here:
-        int amount=0;
-        boolean verifica=true;
-      
-        if(jList1.isSelectionEmpty()){
-            verifica=false;
+        int amount = 0;
+        boolean verifica = true;
+
+        if (jList1.isSelectionEmpty()) {
+            verifica = false;
             javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must select a book");
-        }
-        else if(!((String)jList1.getSelectedValue()).contains("Livro")){
-            verifica=false;
-           javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must Load Books");
-        }
-        else if(jTextField2.getText().equals("")){
-            verifica=false;
+        } else if (!((String) jList1.getSelectedValue()).contains("Livro")) {
+            verifica = false;
+            javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must Load Books");
+        } else if (jTextField2.getText().equals("")) {
+            verifica = false;
             javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must say how many books do you want to buy");
-        }else if(!jTextField2.getText().equals("")){
-        try{
-            amount = Integer.parseInt(jTextField2.getText());
-        }catch(Exception ex){
-            verifica=false;
-            javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must type a number");
+        } else if (!jTextField2.getText().equals("")) {
+            try {
+                amount = Integer.parseInt(jTextField2.getText());
+            } catch (Exception ex) {
+                verifica = false;
+                javax.swing.JOptionPane.showMessageDialog(null, "Sorry, You must type a number");
+            }
         }
-        }
-        if(verifica){
-        String selected = ((String)jList1.getSelectedValue());
-        String name =selected.substring(selected.indexOf(" ")+1,selected.indexOf(","));
+        if (verifica) {
+            String selected = ((String) jList1.getSelectedValue());
+            int id = Integer.parseInt(selected.substring(0, selected.indexOf("-")));
+            String name = "";
+            for (Book book : this.books) {
+                if (book.getId() == id) {
+                    name = book.getName();
+                }
+            }
             try {
                 boolean buyBook = c.buyBook(name, amount);
-                if (buyBook){
+                if (buyBook) {
                     javax.swing.JOptionPane.showMessageDialog(null, "Purchase successfully finished");
-                }
-                else{
-                     javax.swing.JOptionPane.showMessageDialog(null, "Sorry, Looks Like we do not have enough books ,"
-                             + "please Load Books again");
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(null, "Sorry, Looks Like we do not have enough books ,"
+                            + "please Load Books again");
                 }
             } catch (IOException ex) {
                 Logger.getLogger(InterfaceCliente2.class.getName()).log(Level.SEVERE, null, ex);
             } catch (LoginException ex) {
                 Logger.getLogger(InterfaceCliente2.class.getName()).log(Level.SEVERE, null, ex);
             }
-        
+
         }
     }//GEN-LAST:event_jButton2ActionPerformed
 
@@ -242,12 +254,12 @@ public class InterfaceCliente2 extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-   /*     java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new InterfaceCliente2().setVisible(true);
-            }
-        });
-    */}
+        /*     java.awt.EventQueue.invokeLater(new Runnable() {
+         public void run() {
+         new InterfaceCliente2().setVisible(true);
+         }
+         });
+         */    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

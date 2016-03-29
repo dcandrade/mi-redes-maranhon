@@ -16,12 +16,23 @@ public class Book {
     private final String name;
     private final int amount;
     private final double value;
+    private int id;
 
     public Book(String name, int amount, double value) {
         this.name = name;
         this.amount = amount;
         this.value = value;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    
 
     public String getName() {
         return this.name;
@@ -41,6 +52,6 @@ public class Book {
 
     @Override
     public String toString() {
-        return "Livro: " + this.name + ", quantidade: " + this.amount + ", preço: " + this.value;
+        return this.name + ", amount: " + this.amount + ", price: " + this.value;
     }
 }
