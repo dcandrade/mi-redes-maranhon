@@ -85,11 +85,15 @@ public class MulticastCentral {
     }
 
     public boolean isReceived(int id) {
-        return this.packets.get(id).equals(ServerProtocol.RECEIVED);
+        String packet = this.packets.get(id);
+        return packet == null ? false : packet.equals(ServerProtocol.RECEIVED);
     }
 
     public void resendPacket(int id) throws IOException {
-        this.send(this.packets.get(id));
+        String packet = this.packets.get(id);
+        if (packet != null) {
+            this.send(packet);
+        }
     }
 
     public void sendConfirmation(int idPacket, int sender) throws IOException {

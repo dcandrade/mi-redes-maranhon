@@ -17,6 +17,7 @@ import protocols.ServerProtocol;
 public class PacketWatcher implements Runnable {
 
     private static int TIMEOUT = 2000;
+    private static int ATTEMPTS = 3;
     private MulticastCentral sender;
     private final int id;
     private int idSender;
@@ -44,20 +45,25 @@ public class PacketWatcher implements Runnable {
     public void run() {
         synchronized (this) {
             try {
+                 int attempts;
                 switch (operation) {
                     case ServerProtocol.WAITING_CONFIRMATION:
+                        attempts=1;
                         this.wait(PacketWatcher.TIMEOUT);
-                        while (!sender.isReceived(this.id)) {
-                            System.err.println("Resending packet");
+                        while (!sender.isReceived(this.id)&& attempts < PacketWatcher.ATTEMPTS) {
+                            System.out.println("Resending packet, attempt #"+attempts);
                             this.sender.resendPacket(this.id);
+                            attempts++;
                             this.wait(PacketWatcher.TIMEOUT);
                         }
-                        System.exit(0);
                     case ServerProtocol.WAITING_RECONFIRMATION:
+                        attempts=1;
                         this.wait(PacketWatcher.TIMEOUT);
-                        while (!sender.isTransactionFinished(id)) {
+                        while (!sender.isTransactionFinished(id) && attempts < PacketWatcher.ATTEMPTS) {
+                             System.out.println("Resending confirmation, attempt #"+attempts);
                             this.sender.sendConfirmation(id, idSender);
-                            Thread.sleep(PacketWatcher.TIMEOUT);
+                            attempts++;
+                            this.wait(PacketWatcher.TIMEOUT);
                         }
                         break;
                 }

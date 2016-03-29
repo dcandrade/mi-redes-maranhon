@@ -77,7 +77,7 @@ public class BooksEngine {
             String name = iterator.next();
             int amount = getAmount(name, true);
             double value = Double.parseDouble(getValue(name));
-            Book newBook = new Book(name.replace('|', ' '), amount, value);
+            Book newBook = new Book(name, amount, value);
             books.add(newBook);
         }
         return books;

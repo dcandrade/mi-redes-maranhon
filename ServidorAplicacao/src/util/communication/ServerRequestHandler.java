@@ -101,7 +101,7 @@ public class ServerRequestHandler {
                 System.out.println("[SERVER] Books data received");
 
                 while (tokens.hasMoreTokens()) {
-                    String name = tokens.nextToken().replace(' ', '|');
+                    String name = tokens.nextToken();
                     String na = tokens.nextToken();
                     value = Double.parseDouble(tokens.nextToken());
                     books.newBook(name, na, String.valueOf(value));

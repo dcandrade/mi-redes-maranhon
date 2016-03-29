@@ -155,9 +155,7 @@ public class InterfaceCliente2 extends javax.swing.JFrame {
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         try {
             // TODO add your handling code here:
-            c.connect();
             List <Book> books = c.getBooks();
-            c.disconnect();
             DefaultListModel model = new DefaultListModel();
             jList1.setModel(model);
             for(int i=0;i<books.size();i++){
@@ -199,9 +197,7 @@ public class InterfaceCliente2 extends javax.swing.JFrame {
         String selected = ((String)jList1.getSelectedValue());
         String name =selected.substring(selected.indexOf(" ")+1,selected.indexOf(","));
             try {
-                c.connect();
                 boolean buyBook = c.buyBook(name, amount);
-                c.disconnect();
                 if (buyBook){
                     javax.swing.JOptionPane.showMessageDialog(null, "Purchase successfully finished");
                 }

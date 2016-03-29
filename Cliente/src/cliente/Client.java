@@ -99,7 +99,6 @@ public class Client {
     }
 
     public boolean buyBook(String name, int amount) throws IOException, LoginException {
-        name = name.replace(' ', '|');
         StringBuilder request = new StringBuilder();
         request.append(Protocol.GIVEMETHEBOOKS).append(Protocol.SEPARATOR);
         request.append(name).append(Protocol.SEPARATOR);
