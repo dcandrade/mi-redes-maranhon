@@ -36,7 +36,7 @@ public class Book {
    
     
     public String serialize(String separator){
-        return this.name + separator + this.amount + separator + this.value + separator;
+        return separator + this.name + separator + this.amount + separator + this.value + separator;
     }
     
     @Override

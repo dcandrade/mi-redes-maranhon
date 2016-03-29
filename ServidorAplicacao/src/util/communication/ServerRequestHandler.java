@@ -82,13 +82,13 @@ public class ServerRequestHandler {
 
                 LinkedList<Book> bks = books.getBooks();
                 StringBuilder data = new StringBuilder();
-
+                int packet;
+                
                 for (Book b : bks) {
-                    data.append(b.serialize(ServerProtocol.SEPARATOR));
+                    packet = mc.createPacket(ServerProtocol.RECEIVING_BOOKS, b.serialize(protocols.ClientProtocol.SEPARATOR));
+                    mc.send(packet);
                 }
 
-                int packet = mc.createPacket(ServerProtocol.RECEIVING_BOOKS, data.toString());
-                mc.send(packet);
 
                 packet = mc.createPacket(ServerProtocol.RECEIVING_SHOPPINGS, this.shopping.serialize());
                 mc.send(packet);
